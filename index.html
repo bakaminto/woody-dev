@@ -90,26 +90,23 @@
         </div>
         </div>
 
-        <!-- Static Telemetry Bar (Out / Office / Inactive) -->
+        <!-- Static Telemetry Bar (Out / Office) -->
         <div class="hidden flex items-center justify-center gap-2 w-full select-none" id="telemetryBar">
-          <div class="flex-1 py-1.5 rounded-lg bg-[#fbc02d] text-[#1a1a1a] font-bold text-xs text-center shadow-sm"
+          <div style="width: calc((100% - 16px) / 3);"
+            class="py-1.5 rounded-lg bg-[#fbc02d] text-[#1a1a1a] font-bold text-xs text-center shadow-sm"
             id="countOut">Out: 0</div>
-          <div class="flex-1 py-1.5 rounded-lg bg-[#2e7d32] text-white font-bold text-xs text-center shadow-sm"
+          <div style="width: calc((100% - 16px) / 3);"
+            class="py-1.5 rounded-lg bg-[#2e7d32] text-white font-bold text-xs text-center shadow-sm"
             id="countOffice">Office: 0</div>
-          <div class="flex-1 py-1.5 rounded-lg bg-[#dbdad9] text-[#1b1c1c] font-bold text-xs text-center shadow-sm"
-            id="countInactive">Inactive: 0</div>
         </div>
       </div>
 
       <!-- Secondary Screen Navigation (Detail & Setup Views) -->
-      <div id="navSub" class="hidden relative w-full flex items-center justify-between gap-2">
+      <div id="navSub" class="hidden w-full flex items-center justify-between gap-2">
         <button type="button" id="btnHeaderBack" onclick="handleHeaderBack()"
           class="px-4 py-2 bg-[#efeded] hover:bg-[#e3e2e2] text-[#1b1c1c] font-semibold text-sm rounded-xl transition-colors cursor-pointer shrink-0">
           Back
         </button>
-        <span id="setupHeaderTitle" class="hidden absolute left-1/2 -translate-x-1/2 text-sm font-bold uppercase tracking-wider text-[#5d403b] pointer-events-none select-none">
-          Settings
-        </span>
         <button type="button" id="btnHeaderSave" disabled
           class="px-5 py-2 bg-[#efeded] text-[#5d403b]/40 font-bold text-sm rounded-xl cursor-not-allowed transition-all shrink-0">
           Save
@@ -140,23 +137,10 @@
     <!-- VIEW 1B: LIST VIEW -->
     <section id="viewList" class="hidden pb-[calc(106px+env(safe-area-inset-bottom,0px))] px-1 max-w-md mx-auto">
       <div class="flex flex-col w-full gap-3">
-        <!-- Accordion 1: Out on Job -->
-        <div class="flex flex-col rounded-xl bg-[#f5f3f3] border border-[#e9e8e7] overflow-hidden">
-          <button type="button" onclick="toggleAccordion('listOutContent', 'listOutIcon')"
-            class="w-full p-4 flex items-center justify-between text-left cursor-pointer hover:bg-[#efeded] transition-colors">
-            <div class="flex items-center gap-2">
-              <h2 class="text-xs uppercase font-bold tracking-wider text-[#5d403b]">Out on Job</h2>
-              <span class="px-2 py-0.5 rounded-full bg-[#e3e2e2] text-xs font-bold" id="badgeListCountOut">0</span>
-            </div>
-            <svg id="listOutIcon" class="w-5 h-5 text-[#916f69] transition-transform duration-200 fill-current"
-              viewBox="0 0 24 24">
-              <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z" />
-            </svg>
-          </button>
-          <div class="flex flex-col px-3 pb-3 gap-2 hidden" id="listOutContent"></div>
-        </div>
+        <!-- Dynamic Out-on-Job Accordions (Grouped by Customer) -->
+        <div class="flex flex-col w-full gap-3" id="listOutGroupsContainer"></div>
 
-        <!-- Accordion 2: In Office -->
+        <!-- Accordion: In Office -->
         <div class="flex flex-col rounded-xl bg-[#f5f3f3] border border-[#e9e8e7] overflow-hidden">
           <button type="button" onclick="toggleAccordion('listOfficeContent', 'listOfficeIcon')"
             class="w-full p-4 flex items-center justify-between text-left cursor-pointer hover:bg-[#efeded] transition-colors">
@@ -170,22 +154,6 @@
             </svg>
           </button>
           <div class="flex flex-col px-3 pb-3 gap-2 hidden" id="listOfficeContent"></div>
-        </div>
-
-        <!-- Accordion 3: Inactive Devices -->
-        <div class="flex flex-col rounded-xl bg-[#f5f3f3] border border-[#e9e8e7] overflow-hidden">
-          <button type="button" onclick="toggleAccordion('listInactiveContent', 'listInactiveIcon')"
-            class="w-full p-4 flex items-center justify-between text-left cursor-pointer hover:bg-[#efeded] transition-colors">
-            <div class="flex items-center gap-2">
-              <h2 class="text-xs uppercase font-bold tracking-wider text-[#5d403b]">Inactive Devices</h2>
-              <span class="px-2 py-0.5 rounded-full bg-[#e3e2e2] text-xs font-bold" id="badgeListCountInactive">0</span>
-            </div>
-            <svg id="listInactiveIcon" class="w-5 h-5 text-[#916f69] transition-transform duration-200 fill-current"
-              viewBox="0 0 24 24">
-              <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z" />
-            </svg>
-          </button>
-          <div class="flex flex-col px-3 pb-3 gap-2 hidden" id="listInactiveContent"></div>
         </div>
       </div>
     </section>
@@ -591,12 +559,10 @@
       const navMain = document.getElementById("navMain");
       const navSub = document.getElementById("navSub");
       const setupFABs = document.getElementById("setupFABs");
-      const setupHeaderTitle = document.getElementById("setupHeaderTitle");
       const setupHeaderToggle = document.getElementById("setupHeaderToggle");
 
       setupFABs.classList.add("hidden");
       if (navSub) navSub.classList.remove("h-14");
-      if (setupHeaderTitle) setupHeaderTitle.classList.add("hidden");
       if (setupHeaderToggle) setupHeaderToggle.classList.add("hidden");
 
       if (viewName === "grid" || viewName === "list" || viewName === "calendar") {
@@ -652,7 +618,6 @@
         navMain.classList.add("hidden");
         navSub.classList.remove("hidden");
         navSub.classList.add("h-14");
-        if (setupHeaderTitle) setupHeaderTitle.classList.remove("hidden");
         if (setupHeaderToggle) setupHeaderToggle.classList.remove("hidden");
         setupFABs.classList.remove("hidden");
         document.getElementById("viewSetup").classList.remove("hidden");
@@ -682,7 +647,6 @@
 
       let outCount = 0;
       let officeCount = 0;
-      let inactiveCount = 0;
 
       (globalStore.slots || []).forEach(slot => {
         const dev = slot.device_id ? devMap.get(slot.device_id) : null;
@@ -696,7 +660,6 @@
         }
 
         if (!dev.is_active) {
-          inactiveCount++;
           const inactiveCell = document.createElement("div");
           inactiveCell.className = "flex flex-col items-center justify-center w-full h-[58px] rounded-2xl bg-[#dbdad9] text-[#1b1c1c] shadow-xs select-none cursor-default";
           inactiveCell.innerHTML = `<span class="font-bold text-sm leading-none truncate max-w-full px-1">${dev.label}</span><span class="text-xs font-semibold leading-tight mt-1">${slot.slot_tag}</span>`;
@@ -722,21 +685,21 @@
 
       document.getElementById("countOut").textContent = `Out: ${outCount}`;
       document.getElementById("countOffice").textContent = `Office: ${officeCount}`;
-      document.getElementById("countInactive").textContent = `Inactive: ${inactiveCount}`;
     }
 
     // List View
     function toggleAccordion(contentId, iconId, forceOpen = false) {
       const content = document.getElementById(contentId);
       const icon = document.getElementById(iconId);
+      if (!content) return;
       const isHidden = content.classList.contains("hidden");
 
       if (isHidden || forceOpen) {
         content.classList.remove("hidden");
-        icon.classList.add("rotate-180");
+        if (icon) icon.classList.add("rotate-180");
       } else {
         content.classList.add("hidden");
-        icon.classList.remove("rotate-180");
+        if (icon) icon.classList.remove("rotate-180");
       }
     }
 
@@ -751,63 +714,128 @@
       const devMap = new Map((globalStore.devices || []).map(d => [d.id, d]));
       const outList = [];
       const officeList = [];
-      const inactiveList = [];
 
       (globalStore.slots || []).forEach(slot => {
         if (!slot.device_id) return;
         const dev = devMap.get(slot.device_id);
-        if (!dev) return;
+        if (!dev || !dev.is_active) return;
 
         const rowItem = { ...dev, slot_number: slot.slot_number, slot_tag: slot.slot_tag };
-        if (!dev.is_active) {
-          inactiveList.push(rowItem);
-        } else if (dev.status === "out") {
+        if (dev.status === "out") {
           outList.push(rowItem);
         } else {
           officeList.push(rowItem);
         }
       });
 
-      document.getElementById("badgeListCountOut").textContent = outList.length;
-      document.getElementById("badgeListCountOffice").textContent = officeList.length;
-      document.getElementById("badgeListCountInactive").textContent = inactiveList.length;
+      const getOutCustomerName = (dev) => (dev.customer || "").trim() || "Unspecified Customer";
+      outList.sort((a, b) => {
+        const custA = getOutCustomerName(a);
+        const custB = getOutCustomerName(b);
+        const cmpCust = custA.localeCompare(custB, undefined, { sensitivity: "base" }) || custA.localeCompare(custB);
+        if (cmpCust !== 0) return cmpCust;
 
+        const evA = (a.event || "").trim();
+        const evB = (b.event || "").trim();
+        const cmpEv = evA.localeCompare(evB, undefined, { sensitivity: "base" }) || evA.localeCompare(evB);
+        if (cmpEv !== 0) return cmpEv;
+
+        return (a.slot_number || 0) - (b.slot_number || 0);
+      });
+
+      document.getElementById("badgeListCountOffice").textContent = officeList.length;
       document.getElementById("countOut").textContent = `Out: ${outList.length}`;
       document.getElementById("countOffice").textContent = `Office: ${officeList.length}`;
-      document.getElementById("countInactive").textContent = `Inactive: ${inactiveList.length}`;
 
-      const outBox = document.getElementById("listOutContent");
-      outBox.innerHTML = "";
+      const outGroups = [];
+      const groupByKey = new Map();
       outList.forEach(dev => {
-        const row = document.createElement("div");
-        row.id = `list_row_${dev.id}`;
-        row.className = "w-full bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-3 cursor-pointer select-none active:scale-[0.99]";
-        row.onclick = () => {
-          listTargetOpenSection = "listOutContent";
-          listTargetScrollDevId = dev.id;
-          switchView("detail", { id: dev.id });
-        };
-        row.innerHTML = `
-          <div class="flex items-center gap-3 min-w-0 flex-1">
-            <div class="w-12 h-12 rounded-xl bg-[#fbc02d] text-[#1a1a1a] flex flex-col items-center justify-center shrink-0 shadow-sm font-bold text-xs font-code">
-              ${dev.label}
-            </div>
-            <div class="flex flex-col min-w-0 flex-1">
-              <span class="text-sm font-semibold truncate text-[#1b1c1c]">${escapeHtml(dev.customer || "Unspecified Customer")}</span>
-              <p class="text-xs text-[#5d403b] truncate">${escapeHtml(dev.event || "No event")}</p>
-              <div class="text-[11px] text-[#916f69] font-medium mt-0.5">
-                ${dev.due_date ? `Due: ${dev.due_date}` : ""} ${dev.out_date ? `â€¢ Sent: ${dev.out_date}` : ""}
+        const customerLabel = getOutCustomerName(dev);
+        const key = customerLabel.toLowerCase();
+        let group = groupByKey.get(key);
+        if (!group) {
+          group = { customer: customerLabel, items: [] };
+          groupByKey.set(key, group);
+          outGroups.push(group);
+        }
+        group.items.push(dev);
+      });
+
+      const outGroupsContainer = document.getElementById("listOutGroupsContainer");
+      outGroupsContainer.innerHTML = "";
+      outGroupsContainer.classList.toggle("hidden", outGroups.length === 0);
+
+      const accordionSections = [{ contentId: "listOfficeContent", iconId: "listOfficeIcon" }];
+      let resolvedTargetSection = null;
+
+      outGroups.forEach((group, idx) => {
+        const contentId = `listOutContent_${idx}`;
+        const iconId = `listOutIcon_${idx}`;
+        accordionSections.push({ contentId, iconId });
+
+        const card = document.createElement("div");
+        card.className = "flex flex-col rounded-xl bg-[#f5f3f3] border border-[#e9e8e7] overflow-hidden";
+
+        const headerBtn = document.createElement("button");
+        headerBtn.type = "button";
+        headerBtn.onclick = () => toggleAccordion(contentId, iconId);
+        headerBtn.className = "w-full p-4 flex items-center justify-between text-left cursor-pointer hover:bg-[#efeded] transition-colors gap-2";
+        headerBtn.innerHTML = `
+          <div class="flex items-center gap-2 min-w-0 flex-1">
+            <h2 class="text-xs uppercase font-bold tracking-wider text-[#5d403b] truncate">Out on Job - ${escapeHtml(group.customer)}</h2>
+            <span class="px-2 py-0.5 rounded-full bg-[#e3e2e2] text-xs font-bold shrink-0">${group.items.length}</span>
+          </div>
+          <svg id="${iconId}" class="w-5 h-5 text-[#916f69] transition-transform duration-200 fill-current shrink-0"
+            viewBox="0 0 24 24">
+            <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z" />
+          </svg>
+        `;
+
+        const contentBox = document.createElement("div");
+        contentBox.id = contentId;
+        contentBox.className = "flex flex-col px-3 pb-3 gap-2 hidden";
+
+        group.items.forEach(dev => {
+          if (listTargetScrollDevId && dev.id === listTargetScrollDevId) {
+            resolvedTargetSection = { contentId, iconId };
+          }
+          const row = document.createElement("div");
+          row.id = `list_row_${dev.id}`;
+          row.className = "w-full bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-3 cursor-pointer select-none active:scale-[0.99]";
+          row.onclick = () => {
+            listTargetOpenSection = contentId;
+            listTargetScrollDevId = dev.id;
+            switchView("detail", { id: dev.id });
+          };
+          row.innerHTML = `
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <div class="w-12 h-12 rounded-xl bg-[#fbc02d] text-[#1a1a1a] flex flex-col items-center justify-center shrink-0 shadow-sm font-bold text-xs font-code">
+                ${dev.label}
+              </div>
+              <div class="flex flex-col min-w-0 flex-1">
+                <span class="text-sm font-semibold truncate text-[#1b1c1c]">${escapeHtml(group.customer)}</span>
+                <p class="text-xs text-[#5d403b] truncate">${escapeHtml(dev.event || "No event")}</p>
+                <div class="text-[11px] text-[#916f69] font-medium mt-0.5">
+                  ${dev.due_date ? `Due: ${dev.due_date}` : ""} ${dev.out_date ? `&bull; Sent: ${dev.out_date}` : ""}
+                </div>
               </div>
             </div>
-          </div>
-          <svg class="w-5 h-5 text-[#916f69] fill-current" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-        `;
-        outBox.appendChild(row);
+            <svg class="w-5 h-5 text-[#916f69] fill-current" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+          `;
+          contentBox.appendChild(row);
+        });
+
+        card.appendChild(headerBtn);
+        card.appendChild(contentBox);
+        outGroupsContainer.appendChild(card);
       });
 
       const officeBox = document.getElementById("listOfficeContent");
       officeBox.innerHTML = "";
       officeList.forEach(dev => {
+        if (listTargetScrollDevId && dev.id === listTargetScrollDevId) {
+          resolvedTargetSection = { contentId: "listOfficeContent", iconId: "listOfficeIcon" };
+        }
         const row = document.createElement("div");
         row.id = `list_row_${dev.id}`;
         row.className = "w-full bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-3 cursor-pointer select-none active:scale-[0.99]";
@@ -828,30 +856,20 @@
         officeBox.appendChild(row);
       });
 
-      const inactiveBox = document.getElementById("listInactiveContent");
-      inactiveBox.innerHTML = "";
-      inactiveList.forEach(dev => {
-        const row = document.createElement("div");
-        row.className = "w-full bg-white/70 rounded-xl p-3 flex items-center justify-between gap-3 select-none cursor-default opacity-80";
-        row.innerHTML = `
-          <div class="flex items-center gap-3 min-w-0 flex-1">
-            <div class="w-12 h-12 rounded-xl bg-[#dbdad9] text-[#1b1c1c] flex flex-col items-center justify-center shrink-0 font-bold text-xs font-code">
-              ${dev.label}
-            </div>
-            <span class="text-sm font-medium text-[#5d403b]">Inactive</span>
-          </div>
-        `;
-        inactiveBox.appendChild(row);
-      });
-
-      if (listTargetOpenSection) {
-        ["listOutContent", "listOfficeContent", "listInactiveContent"].forEach(id => {
-          if (id !== listTargetOpenSection) {
-            closeAccordion(id, id === "listOutContent" ? "listOutIcon" : id === "listOfficeContent" ? "listOfficeIcon" : "listInactiveIcon");
+      if (listTargetOpenSection || listTargetScrollDevId) {
+        const target = resolvedTargetSection || (
+          listTargetOpenSection === "listOfficeContent"
+            ? { contentId: "listOfficeContent", iconId: "listOfficeIcon" }
+            : null
+        );
+        accordionSections.forEach(sec => {
+          if (!target || sec.contentId !== target.contentId) {
+            closeAccordion(sec.contentId, sec.iconId);
           }
         });
-        const iconId = listTargetOpenSection === "listOutContent" ? "listOutIcon" : "listOfficeIcon";
-        toggleAccordion(listTargetOpenSection, iconId, true);
+        if (target) {
+          toggleAccordion(target.contentId, target.iconId, true);
+        }
 
         if (listTargetScrollDevId) {
           setTimeout(() => {
