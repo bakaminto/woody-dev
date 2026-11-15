@@ -102,21 +102,26 @@
       </div>
 
       <!-- Secondary Screen Navigation (Detail & Setup Views) -->
-      <div id="navSub" class="hidden w-full flex items-center justify-between gap-2">
+      <div id="navSub" class="hidden relative w-full flex items-center justify-between gap-2">
         <button type="button" id="btnHeaderBack" onclick="handleHeaderBack()"
           class="px-4 py-2 bg-[#efeded] hover:bg-[#e3e2e2] text-[#1b1c1c] font-semibold text-sm rounded-xl transition-colors cursor-pointer shrink-0">
           Back
         </button>
-        <div id="setupHeaderToggle" class="hidden bg-[#efeded] h-9 p-1 rounded-2xl grid grid-cols-2 gap-1 items-center select-none">
-          <button type="button" id="setupTabDevices" onclick="switchSetupTab('devices')"
-            class="px-3 h-7 rounded-xl text-xs font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-default flex items-center justify-center">Devices</button>
-          <button type="button" id="setupTabCustomers" onclick="switchSetupTab('customers')"
-            class="px-3 h-7 rounded-xl text-xs font-semibold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer flex items-center justify-center">Customers</button>
-        </div>
+        <span id="setupHeaderTitle" class="hidden absolute left-1/2 -translate-x-1/2 text-sm font-bold uppercase tracking-wider text-[#5d403b] pointer-events-none select-none">
+          Settings
+        </span>
         <button type="button" id="btnHeaderSave" disabled
           class="px-5 py-2 bg-[#efeded] text-[#5d403b]/40 font-bold text-sm rounded-xl cursor-not-allowed transition-all shrink-0">
           Save
         </button>
+      </div>
+
+      <!-- Setup Sub-View Toggle (Row 2 in Header) -->
+      <div id="setupHeaderToggle" class="hidden w-full bg-[#efeded] h-9 p-1 rounded-2xl grid grid-cols-2 gap-1 items-center select-none">
+        <button type="button" id="setupTabDevices" onclick="switchSetupTab('devices')"
+          class="px-3 h-7 rounded-xl text-xs font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-default flex items-center justify-center">Devices</button>
+        <button type="button" id="setupTabCustomers" onclick="switchSetupTab('customers')"
+          class="px-3 h-7 rounded-xl text-xs font-semibold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer flex items-center justify-center">Customers</button>
       </div>
     </div>
   </header>
@@ -272,8 +277,7 @@
     </section>
 
     <!-- VIEW 3: SETTINGS (DEVICES & CUSTOMERS) -->
-    <section id="viewSetup" class="hidden pb-28 px-4 max-w-md mx-auto relative -mt-8">
-      <h1 id="setupSectionTitle" class="text-xs font-bold uppercase tracking-wider text-[#5d403b] text-center mb-4">Slots &amp; Devices</h1>
+    <section id="viewSetup" class="hidden pb-28 px-4 max-w-md mx-auto relative">
       <div class="flex flex-col w-full gap-3" id="setupGroupsContainer"></div>
       <div class="flex flex-col w-full gap-3 hidden" id="setupCustomersContainer"></div>
       <div class="w-full py-8 text-center">
@@ -587,9 +591,11 @@
       const navMain = document.getElementById("navMain");
       const navSub = document.getElementById("navSub");
       const setupFABs = document.getElementById("setupFABs");
+      const setupHeaderTitle = document.getElementById("setupHeaderTitle");
       const setupHeaderToggle = document.getElementById("setupHeaderToggle");
 
       setupFABs.classList.add("hidden");
+      if (setupHeaderTitle) setupHeaderTitle.classList.add("hidden");
       if (setupHeaderToggle) setupHeaderToggle.classList.add("hidden");
 
       if (viewName === "grid" || viewName === "list" || viewName === "calendar") {
@@ -604,7 +610,7 @@
         if (telemetryBar) {
           telemetryBar.classList.toggle("hidden", viewName === "calendar");
         }
-        applyMainTopPadding(viewName === "calendar");
+        applyMainTopPadding(viewName);
 
         // Base styles for inactive tabs
         tabGrid.className = "px-3.5 h-7 rounded-xl text-xs font-semibold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer flex items-center justify-center";
@@ -632,7 +638,7 @@
           });
         }
       } else if (viewName === "detail") {
-        applyMainTopPadding(false);
+        applyMainTopPadding("detail");
         navMain.classList.add("hidden");
         navSub.classList.remove("hidden");
         document.getElementById("viewDetail").classList.remove("hidden");
@@ -641,9 +647,10 @@
         activeDetailDeviceId = params.id;
         initDetailView(params.id);
       } else if (viewName === "setup") {
-        applyMainTopPadding(false);
+        applyMainTopPadding("setup");
         navMain.classList.add("hidden");
         navSub.classList.remove("hidden");
+        if (setupHeaderTitle) setupHeaderTitle.classList.remove("hidden");
         if (setupHeaderToggle) setupHeaderToggle.classList.remove("hidden");
         setupFABs.classList.remove("hidden");
         document.getElementById("viewSetup").classList.remove("hidden");
@@ -985,9 +992,33 @@
       document.body.removeChild(ta);
     }
 
+    function updateDetailDateFieldStates() {
+      const outEl = document.getElementById("inputDetailOutDate");
+      const dueEl = document.getElementById("inputDetailDueDate");
+      if (!outEl || !dueEl) return;
+
+      const outVal = outEl.value;
+      const dueVal = dueEl.value;
+      const hasOutDate = Boolean(outVal);
+      const isInvalidRange = Boolean(outVal && dueVal && dueVal < outVal);
+
+      dueEl.disabled = !hasOutDate;
+      dueEl.min = hasOutDate ? outVal : "";
+      dueEl.classList.toggle("opacity-50", !hasOutDate);
+      dueEl.classList.toggle("cursor-not-allowed", !hasOutDate);
+      dueEl.classList.toggle("ring-2", isInvalidRange);
+      dueEl.classList.toggle("ring-[#b80000]", isInvalidRange);
+      dueEl.classList.toggle("text-[#b80000]", isInvalidRange);
+    }
+
     function handleDateFieldFocusPrefill(el) {
-      if (!el || el.value) return;
-      el.value = formatDateInputValue(selectedDate);
+      if (!el || el.disabled || el.value) return;
+      if (el.id === "inputDetailDueDate") {
+        const outVal = document.getElementById("inputDetailOutDate")?.value || "";
+        el.value = outVal || formatDateInputValue(selectedDate);
+      } else {
+        el.value = formatDateInputValue(selectedDate);
+      }
       handleDetailInput();
     }
 
@@ -1007,6 +1038,7 @@
       document.getElementById("inputDetailDueDate").value = dev.due_date || "";
 
       resetCopyEventIcon();
+      updateDetailDateFieldStates();
       updateDetailVisualState(detailCurrentStatus);
 
       const btnHeaderSave = document.getElementById("btnHeaderSave");
@@ -1045,21 +1077,22 @@
         canSave = detailBaseline.status === "out";
       } else {
         const allFilled = Boolean(c && e && o && d);
+        const hasValidDateRange = Boolean(o && d && d >= o);
         const fieldsChanged = (
           c !== (detailBaseline.customer || "") ||
           e !== (detailBaseline.event || "") ||
           o !== (detailBaseline.out_date || "") ||
           d !== (detailBaseline.due_date || "")
         );
-        canSave = allFilled && (fieldsChanged || hasStatusChanged);
+        canSave = allFilled && hasValidDateRange && (fieldsChanged || hasStatusChanged);
       }
 
       if (canSave) {
         btnSave.disabled = false;
-        btnSave.className = "px-5 py-2 bg-[#b80000] hover:bg-[#8b0000] text-white font-bold text-sm rounded-xl cursor-pointer shadow-sm transition-all";
+        btnSave.className = "px-5 py-2 bg-[#b80000] hover:bg-[#8b0000] text-white font-bold text-sm rounded-xl cursor-pointer shadow-sm transition-all shrink-0";
       } else {
         btnSave.disabled = true;
-        btnSave.className = "px-5 py-2 bg-[#efeded] text-[#5d403b]/40 font-bold text-sm rounded-xl cursor-not-allowed transition-all";
+        btnSave.className = "px-5 py-2 bg-[#efeded] text-[#5d403b]/40 font-bold text-sm rounded-xl cursor-not-allowed transition-all shrink-0";
       }
     }
 
@@ -1071,6 +1104,7 @@
 
       updateDetailCustomerSelectStyle();
       updateCopyEventButtonState();
+      updateDetailDateFieldStates();
 
       const hasAnyChar = Boolean(c || e || o || d);
       if (hasAnyChar && detailCurrentStatus === "office") {
@@ -1112,6 +1146,7 @@
       document.getElementById("inputDetailDueDate").value = "";
       updateDetailCustomerSelectStyle();
       updateCopyEventButtonState();
+      updateDetailDateFieldStates();
       updateDetailVisualState("office");
     });
 
@@ -1178,38 +1213,64 @@
       }
     }
 
+    function hasSetupPendingChanges() {
+      return isSetupDirty || hasUneditedCustomerPlaceholder(setupWorkingStore);
+    }
+
+    function updateSetupTabToggleState() {
+      const btnDevices = document.getElementById("setupTabDevices");
+      const btnCustomers = document.getElementById("setupTabCustomers");
+      if (!btnDevices || !btnCustomers) return;
+
+      const isLocked = hasSetupPendingChanges();
+      const activeCls = "px-3 h-7 rounded-xl text-xs font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-default flex items-center justify-center";
+      const idleCls = "px-3 h-7 rounded-xl text-xs font-semibold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer flex items-center justify-center";
+      const lockedCls = "px-3 h-7 rounded-xl text-xs font-semibold text-[#5d403b]/35 transition-all cursor-not-allowed flex items-center justify-center";
+
+      if (setupActiveTab === "devices") {
+        btnDevices.disabled = false;
+        btnDevices.className = activeCls;
+        btnCustomers.disabled = isLocked;
+        btnCustomers.className = isLocked ? lockedCls : idleCls;
+      } else {
+        btnCustomers.disabled = false;
+        btnCustomers.className = activeCls;
+        btnDevices.disabled = isLocked;
+        btnDevices.className = isLocked ? lockedCls : idleCls;
+      }
+    }
+
     function setSetupDirty() {
       isSetupDirty = true;
       updateSetupSaveButton();
+      updateSetupTabToggleState();
     }
 
     function setSetupClean() {
       isSetupDirty = false;
       updateSetupSaveButton();
+      updateSetupTabToggleState();
     }
 
     function switchSetupTab(tabName) {
-      setupActiveTab = tabName === "customers" ? "customers" : "devices";
-      const btnDevices = document.getElementById("setupTabDevices");
-      const btnCustomers = document.getElementById("setupTabCustomers");
-      const titleEl = document.getElementById("setupSectionTitle");
+      const nextTab = tabName === "customers" ? "customers" : "devices";
+      if (nextTab !== setupActiveTab && hasSetupPendingChanges()) {
+        updateSetupTabToggleState();
+        return;
+      }
+      setupActiveTab = nextTab;
       const groupsContainer = document.getElementById("setupGroupsContainer");
       const customersContainer = document.getElementById("setupCustomersContainer");
 
       if (setupActiveTab === "devices") {
-        if (btnDevices) btnDevices.className = "px-3 h-7 rounded-xl text-xs font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-default flex items-center justify-center";
-        if (btnCustomers) btnCustomers.className = "px-3 h-7 rounded-xl text-xs font-semibold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer flex items-center justify-center";
-        if (titleEl) titleEl.textContent = "Slots & Devices";
         if (groupsContainer) groupsContainer.classList.remove("hidden");
         if (customersContainer) customersContainer.classList.add("hidden");
       } else {
-        if (btnCustomers) btnCustomers.className = "px-3 h-7 rounded-xl text-xs font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-default flex items-center justify-center";
-        if (btnDevices) btnDevices.className = "px-3 h-7 rounded-xl text-xs font-semibold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer flex items-center justify-center";
-        if (titleEl) titleEl.textContent = "Customers";
         if (groupsContainer) groupsContainer.classList.add("hidden");
         if (customersContainer) customersContainer.classList.remove("hidden");
       }
 
+      updateSetupTabToggleState();
       renderSetupView();
     }
 
@@ -1329,6 +1390,7 @@
       renderSetupCustomersView();
       updateSetupFabState();
       updateSetupSaveButton();
+      updateSetupTabToggleState();
     }
 
     function renderSetupCustomersView() {
@@ -1928,12 +1990,14 @@
     const todayAnchor = getTodayAnchor();
     let selectedDate = new Date(todayAnchor.getTime());
 
-    function applyMainTopPadding(isCalendar) {
+    function applyMainTopPadding(viewName) {
       const mainEl = document.querySelector("main");
       if (!mainEl) return;
-      mainEl.classList.toggle("pt-[110px]", isCalendar);
-      mainEl.classList.toggle("pt-[162px]", !isCalendar);
-      mainEl.style.paddingTop = isCalendar ? "110px" : "162px";
+      const padPx = viewName === "calendar" ? "110px" : (viewName === "setup" ? "136px" : "162px");
+      mainEl.classList.toggle("pt-[110px]", viewName === "calendar");
+      mainEl.classList.toggle("pt-[136px]", viewName === "setup");
+      mainEl.classList.toggle("pt-[162px]", viewName !== "calendar" && viewName !== "setup");
+      mainEl.style.paddingTop = padPx;
     }
 
     function renderHeaderTwoLineBadge(topText, bottomText) {
