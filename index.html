@@ -102,14 +102,19 @@
       </div>
 
       <!-- Secondary Screen Navigation (Detail & Setup Views) -->
-      <div id="navSub" class="hidden w-full flex items-center justify-between">
+      <div id="navSub" class="hidden w-full flex items-center justify-between gap-2">
         <button type="button" id="btnHeaderBack" onclick="handleHeaderBack()"
-          class="px-4 py-2 bg-[#efeded] hover:bg-[#e3e2e2] text-[#1b1c1c] font-semibold text-sm rounded-xl transition-colors cursor-pointer">
+          class="px-4 py-2 bg-[#efeded] hover:bg-[#e3e2e2] text-[#1b1c1c] font-semibold text-sm rounded-xl transition-colors cursor-pointer shrink-0">
           Back
         </button>
-        <h1 id="subHeaderTitle" class="text-xs font-bold uppercase tracking-wider text-[#5d403b]"></h1>
+        <div id="setupHeaderToggle" class="hidden bg-[#efeded] h-9 p-1 rounded-2xl grid grid-cols-2 gap-1 items-center select-none">
+          <button type="button" id="setupTabDevices" onclick="switchSetupTab('devices')"
+            class="px-3 h-7 rounded-xl text-xs font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-default flex items-center justify-center">Devices</button>
+          <button type="button" id="setupTabCustomers" onclick="switchSetupTab('customers')"
+            class="px-3 h-7 rounded-xl text-xs font-semibold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer flex items-center justify-center">Customers</button>
+        </div>
         <button type="button" id="btnHeaderSave" disabled
-          class="px-5 py-2 bg-[#efeded] text-[#5d403b]/40 font-bold text-sm rounded-xl cursor-not-allowed transition-all">
+          class="px-5 py-2 bg-[#efeded] text-[#5d403b]/40 font-bold text-sm rounded-xl cursor-not-allowed transition-all shrink-0">
           Save
         </button>
       </div>
@@ -209,14 +214,33 @@
         <div class="w-full bg-white rounded-2xl p-4 shadow-sm border border-[#e9e8e7] flex flex-col gap-4">
           <div class="flex flex-col gap-1">
             <label for="inputDetailCustomer" class="text-xs font-semibold text-[#5d403b]">Customer</label>
-            <input type="text" id="inputDetailCustomer" placeholder="Enter customer name"
-              class="w-full h-11 bg-[#f5f3f3] text-sm text-[#1b1c1c] font-medium px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#916f69]">
+            <div class="relative w-full">
+              <select id="inputDetailCustomer"
+                class="w-full h-11 bg-[#f5f3f3] text-sm text-[#1b1c1c] font-medium pl-3 pr-9 rounded-lg appearance-none focus:outline-none focus:ring-1 focus:ring-[#916f69] cursor-pointer">
+                <option value="">Select customer...</option>
+              </select>
+              <svg class="w-5 h-5 text-[#916f69] fill-current pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2"
+                viewBox="0 0 24 24">
+                <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z" />
+              </svg>
+            </div>
           </div>
 
           <div class="flex flex-col gap-1">
             <label for="inputDetailEvent" class="text-xs font-semibold text-[#5d403b]">Event</label>
-            <input type="text" id="inputDetailEvent" placeholder="Enter event name"
-              class="w-full h-11 bg-[#f5f3f3] text-sm text-[#1b1c1c] font-medium px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#916f69]">
+            <div
+              class="flex items-center w-full h-11 bg-[#f5f3f3] rounded-lg focus-within:ring-1 focus-within:ring-[#916f69] overflow-hidden">
+              <input type="text" id="inputDetailEvent" placeholder="Enter event name"
+                class="flex-1 h-full bg-transparent text-sm text-[#1b1c1c] font-medium pl-3 pr-1 focus:outline-none min-w-0">
+              <button type="button" id="btnCopyEvent" onclick="handleCopyEvent()"
+                class="h-full px-3 flex items-center justify-center text-[#5d403b]/30 cursor-default transition-all shrink-0"
+                title="Copy event name" aria-label="Copy event name">
+                <svg id="iconCopyEvent" class="w-[18px] h-[18px] fill-current" viewBox="0 0 24 24">
+                  <path
+                    d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
@@ -240,16 +264,18 @@
             </svg>
             <div>
               <p>Tapping <strong>Office</strong> clears all fields.</p>
-              <p class="mt-0.5">Typing in any field switches status to <strong>Out</strong>.</p>
+              <p class="mt-0.5">Selecting or typing in any field switches status to <strong>Out</strong>.</p>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- VIEW 3: SLOTS & DEVICES -->
-    <section id="viewSetup" class="hidden pb-28 px-4 max-w-md mx-auto relative">
+    <!-- VIEW 3: SETTINGS (DEVICES & CUSTOMERS) -->
+    <section id="viewSetup" class="hidden pb-28 px-4 max-w-md mx-auto relative -mt-8">
+      <h1 id="setupSectionTitle" class="text-xs font-bold uppercase tracking-wider text-[#5d403b] text-center mb-4">Slots &amp; Devices</h1>
       <div class="flex flex-col w-full gap-3" id="setupGroupsContainer"></div>
+      <div class="flex flex-col w-full gap-3 hidden" id="setupCustomersContainer"></div>
       <div class="w-full py-8 text-center">
         <span id="versionLabel" class="text-[11px] font-code text-[#5d403b]/40 tracking-wider"></span>
       </div>
@@ -342,7 +368,7 @@
       title="Import / Export">
       &lt;&gt;
     </button>
-    <button type="button" id="btnFabAdd" onclick="handleAddDevice()"
+    <button type="button" id="btnFabAdd" onclick="handleSetupAdd()"
       class="w-14 h-14 bg-[#b80000] text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition-transform cursor-pointer"
       aria-label="Add Device">
       <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24">
@@ -456,10 +482,26 @@
     const APP_VERSION = "v1.29";
     <!-- antigravity sync test -->
 
+    const CUSTOMER_PLACEHOLDER_NAME = "<change customer name>";
+
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
     function ensureEmptySlotBuffer(data) {
       if (!data) data = {};
-      if (!data.slots) data.slots = [];
-      if (!data.devices) data.devices = [];
+      if (!Array.isArray(data.slots)) data.slots = [];
+      if (!Array.isArray(data.devices)) data.devices = [];
+      if (!Array.isArray(data.customers)) {
+        data.customers = [];
+      } else {
+        data.customers = data.customers.filter(c => c && typeof c.name === "string" && c.name.trim() !== CUSTOMER_PLACEHOLDER_NAME);
+      }
 
       let emptyCount = data.slots.filter(s => s.device_id === null).length;
 
@@ -487,7 +529,7 @@
 
     function loadStore() {
       const raw = localStorage.getItem("fleet_ledger_data");
-      let data = raw ? JSON.parse(raw) : { slots: [], devices: [] };
+      let data = raw ? JSON.parse(raw) : { slots: [], devices: [], customers: [] };
       return ensureEmptySlotBuffer(data);
     }
 
@@ -506,7 +548,13 @@
 
     let setupWorkingStore = null;
     let setupOpenGroupIds = new Set();
+    let setupActiveTab = "devices";
     let isSetupDirty = false;
+    let activeSwapSourceNum = null;
+    let activeRenameMode = "device";
+    let activeRenameDeviceId = null;
+    let activeRenameCustomerId = null;
+    let copyEventResetTimer = null;
 
     let listTargetScrollDevId = null;
     let listTargetOpenSection = null;
@@ -539,9 +587,10 @@
       const navMain = document.getElementById("navMain");
       const navSub = document.getElementById("navSub");
       const setupFABs = document.getElementById("setupFABs");
-      const subHeaderTitle = document.getElementById("subHeaderTitle");
+      const setupHeaderToggle = document.getElementById("setupHeaderToggle");
 
       setupFABs.classList.add("hidden");
+      if (setupHeaderToggle) setupHeaderToggle.classList.add("hidden");
 
       if (viewName === "grid" || viewName === "list" || viewName === "calendar") {
         navMain.classList.remove("hidden");
@@ -586,7 +635,6 @@
         applyMainTopPadding(false);
         navMain.classList.add("hidden");
         navSub.classList.remove("hidden");
-        subHeaderTitle.textContent = "";
         document.getElementById("viewDetail").classList.remove("hidden");
 
         originView = prevView === "list" ? "list" : "grid";
@@ -596,7 +644,7 @@
         applyMainTopPadding(false);
         navMain.classList.add("hidden");
         navSub.classList.remove("hidden");
-        subHeaderTitle.textContent = "Slots & Devices";
+        if (setupHeaderToggle) setupHeaderToggle.classList.remove("hidden");
         setupFABs.classList.remove("hidden");
         document.getElementById("viewSetup").classList.remove("hidden");
 
@@ -604,7 +652,7 @@
         setupWorkingStore = JSON.parse(JSON.stringify(globalStore));
         setupOpenGroupIds.clear();
         setSetupClean();
-        renderSetupView();
+        switchSetupTab("devices");
       }
     }
 
@@ -736,8 +784,8 @@
               ${dev.label}
             </div>
             <div class="flex flex-col min-w-0 flex-1">
-              <span class="text-sm font-semibold truncate text-[#1b1c1c]">${dev.customer || "Unspecified Customer"}</span>
-              <p class="text-xs text-[#5d403b] truncate">${dev.event || "No event"}</p>
+              <span class="text-sm font-semibold truncate text-[#1b1c1c]">${escapeHtml(dev.customer || "Unspecified Customer")}</span>
+              <p class="text-xs text-[#5d403b] truncate">${escapeHtml(dev.event || "No event")}</p>
               <div class="text-[11px] text-[#916f69] font-medium mt-0.5">
                 ${dev.due_date ? `Due: ${dev.due_date}` : ""} ${dev.out_date ? `â€¢ Sent: ${dev.out_date}` : ""}
               </div>
@@ -808,6 +856,141 @@
     }
 
     // Detail View
+    const COPY_ICON_PATH = "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z";
+    const CHECK_ICON_PATH = "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z";
+
+    function formatDateInputValue(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const d = String(dateObj.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function updateDetailCustomerSelectStyle() {
+      const select = document.getElementById("inputDetailCustomer");
+      if (!select) return;
+      if (select.value) {
+        select.classList.remove("text-[#5d403b]/50");
+        select.classList.add("text-[#1b1c1c]");
+      } else {
+        select.classList.remove("text-[#1b1c1c]");
+        select.classList.add("text-[#5d403b]/50");
+      }
+    }
+
+    function populateDetailCustomerDropdown(savedCustomer) {
+      const select = document.getElementById("inputDetailCustomer");
+      if (!select) return;
+      select.innerHTML = "";
+
+      const defaultOpt = document.createElement("option");
+      defaultOpt.value = "";
+      defaultOpt.textContent = "Select customer...";
+      select.appendChild(defaultOpt);
+
+      const activeCustomers = (globalStore.customers || [])
+        .filter(c => c && c.is_active && (c.name || "").trim() && c.name.trim() !== CUSTOMER_PLACEHOLDER_NAME)
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      activeCustomers.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.name;
+        opt.textContent = c.name;
+        select.appendChild(opt);
+      });
+
+      const currentVal = (savedCustomer || "").trim();
+      if (currentVal && !activeCustomers.some(c => c.name === currentVal)) {
+        const legacyOpt = document.createElement("option");
+        legacyOpt.value = currentVal;
+        legacyOpt.textContent = `${currentVal} (Inactive)`;
+        legacyOpt.dataset.inactiveLegacy = "true";
+        select.appendChild(legacyOpt);
+      }
+
+      select.value = currentVal;
+      updateDetailCustomerSelectStyle();
+    }
+
+    function resetCopyEventIcon() {
+      if (copyEventResetTimer) {
+        clearTimeout(copyEventResetTimer);
+        copyEventResetTimer = null;
+      }
+      const btn = document.getElementById("btnCopyEvent");
+      const icon = document.getElementById("iconCopyEvent");
+      if (icon) {
+        const pathEl = icon.querySelector("path");
+        if (pathEl) pathEl.setAttribute("d", COPY_ICON_PATH);
+        icon.classList.remove("text-[#2e7d32]");
+      }
+      if (btn) updateCopyEventButtonState();
+    }
+
+    function updateCopyEventButtonState() {
+      const btn = document.getElementById("btnCopyEvent");
+      const input = document.getElementById("inputDetailEvent");
+      if (!btn || !input) return;
+      const hasText = Boolean(input.value.trim());
+      if (hasText) {
+        btn.className = "h-full px-3 flex items-center justify-center text-[#5d403b] hover:text-[#1b1c1c] active:scale-90 transition-all cursor-pointer shrink-0";
+      } else {
+        btn.className = "h-full px-3 flex items-center justify-center text-[#5d403b]/30 cursor-default transition-all shrink-0";
+      }
+    }
+
+    function handleCopyEvent() {
+      const input = document.getElementById("inputDetailEvent");
+      const icon = document.getElementById("iconCopyEvent");
+      if (!input) return;
+      const val = input.value.trim();
+      if (!val) return;
+
+      const finishVisualFeedback = () => {
+        if (!icon) return;
+        const pathEl = icon.querySelector("path");
+        if (pathEl) pathEl.setAttribute("d", CHECK_ICON_PATH);
+        icon.classList.add("text-[#2e7d32]");
+        if (copyEventResetTimer) clearTimeout(copyEventResetTimer);
+        copyEventResetTimer = setTimeout(() => {
+          resetCopyEventIcon();
+        }, 1200);
+      };
+
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        navigator.clipboard.writeText(val).then(finishVisualFeedback).catch(() => {
+          fallbackCopyText(val);
+          finishVisualFeedback();
+        });
+      } else {
+        fallbackCopyText(val);
+        finishVisualFeedback();
+      }
+    }
+
+    function fallbackCopyText(text) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+      } catch (err) {
+        console.warn("Clipboard fallback failed:", err);
+      }
+      document.body.removeChild(ta);
+    }
+
+    function handleDateFieldFocusPrefill(el) {
+      if (!el || el.value) return;
+      el.value = formatDateInputValue(selectedDate);
+      handleDetailInput();
+    }
+
     function initDetailView(devId) {
       const dev = (globalStore.devices || []).find(d => d.id === devId);
       const slotEntry = (globalStore.slots || []).find(s => s.device_id === devId);
@@ -818,11 +1001,12 @@
 
       document.getElementById("detailHeroLabel").textContent = dev.label;
       document.getElementById("detailHeroSlot").textContent = slotEntry ? slotEntry.slot_tag : "";
-      document.getElementById("inputDetailCustomer").value = dev.customer || "";
+      populateDetailCustomerDropdown(dev.customer || "");
       document.getElementById("inputDetailEvent").value = dev.event || "";
       document.getElementById("inputDetailOutDate").value = dev.out_date || "";
       document.getElementById("inputDetailDueDate").value = dev.due_date || "";
 
+      resetCopyEventIcon();
       updateDetailVisualState(detailCurrentStatus);
 
       const btnHeaderSave = document.getElementById("btnHeaderSave");
@@ -885,6 +1069,9 @@
       const o = document.getElementById("inputDetailOutDate").value;
       const d = document.getElementById("inputDetailDueDate").value;
 
+      updateDetailCustomerSelectStyle();
+      updateCopyEventButtonState();
+
       const hasAnyChar = Boolean(c || e || o || d);
       if (hasAnyChar && detailCurrentStatus === "office") {
         updateDetailVisualState("out");
@@ -893,18 +1080,38 @@
       }
     }
 
-    ["inputDetailCustomer", "inputDetailEvent", "inputDetailOutDate", "inputDetailDueDate"].forEach(id => {
+    document.getElementById("inputDetailCustomer").addEventListener("change", (event) => {
+      const select = event.target;
+      const legacyOpt = select.querySelector("option[data-inactive-legacy='true']");
+      if (legacyOpt && select.value !== legacyOpt.value) {
+        legacyOpt.remove();
+      }
+      handleDetailInput();
+    });
+
+    ["inputDetailEvent", "inputDetailOutDate", "inputDetailDueDate"].forEach(id => {
       const el = document.getElementById(id);
       el.addEventListener("input", handleDetailInput);
       el.addEventListener("change", handleDetailInput);
     });
 
+    ["inputDetailOutDate", "inputDetailDueDate"].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener("pointerdown", () => handleDateFieldFocusPrefill(el));
+      el.addEventListener("focus", () => handleDateFieldFocusPrefill(el));
+    });
+
     document.getElementById("btnDetailToggleOffice").addEventListener("click", () => {
       if (detailCurrentStatus === "office") return;
-      document.getElementById("inputDetailCustomer").value = "";
+      const select = document.getElementById("inputDetailCustomer");
+      const legacyOpt = select.querySelector("option[data-inactive-legacy='true']");
+      if (legacyOpt) legacyOpt.remove();
+      select.value = "";
       document.getElementById("inputDetailEvent").value = "";
       document.getElementById("inputDetailOutDate").value = "";
       document.getElementById("inputDetailDueDate").value = "";
+      updateDetailCustomerSelectStyle();
+      updateCopyEventButtonState();
       updateDetailVisualState("office");
     });
 
@@ -935,19 +1142,83 @@
     }
 
     // Setup View
+    function hasUneditedCustomerPlaceholder(store) {
+      const target = store || setupWorkingStore;
+      if (!target) return false;
+      return (target.customers || []).some(c => (c.name || "").trim() === CUSTOMER_PLACEHOLDER_NAME);
+    }
+
+    function updateSetupSaveButton() {
+      const btnSave = document.getElementById("btnHeaderSave");
+      if (!btnSave) return;
+      btnSave.onclick = commitSetupSave;
+      const canSave = isSetupDirty && !hasUneditedCustomerPlaceholder(setupWorkingStore);
+      if (canSave) {
+        btnSave.disabled = false;
+        btnSave.className = "px-5 py-2 bg-[#b80000] hover:bg-[#8b0000] text-white font-bold text-sm rounded-xl cursor-pointer shadow-sm transition-all shrink-0";
+      } else {
+        btnSave.disabled = true;
+        btnSave.className = "px-5 py-2 bg-[#efeded] text-[#5d403b]/40 font-bold text-sm rounded-xl cursor-not-allowed transition-all shrink-0";
+      }
+    }
+
+    function updateSetupFabState() {
+      const btnAdd = document.getElementById("btnFabAdd");
+      if (!btnAdd) return;
+      const isCustomerTab = setupActiveTab === "customers";
+      const isBlocked = isCustomerTab && hasUneditedCustomerPlaceholder(setupWorkingStore);
+
+      btnAdd.setAttribute("aria-label", isCustomerTab ? "Add Customer" : "Add Device");
+      if (isBlocked) {
+        btnAdd.disabled = true;
+        btnAdd.className = "w-14 h-14 bg-[#efeded] text-[#5d403b]/40 rounded-2xl flex items-center justify-center shadow-sm cursor-not-allowed transition-all";
+      } else {
+        btnAdd.disabled = false;
+        btnAdd.className = "w-14 h-14 bg-[#b80000] text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition-transform cursor-pointer";
+      }
+    }
+
     function setSetupDirty() {
       isSetupDirty = true;
-      const btnSave = document.getElementById("btnHeaderSave");
-      btnSave.disabled = false;
-      btnSave.className = "px-5 py-2 bg-[#b80000] hover:bg-[#8b0000] text-white font-bold text-sm rounded-xl cursor-pointer shadow-sm transition-all";
+      updateSetupSaveButton();
     }
 
     function setSetupClean() {
       isSetupDirty = false;
-      const btnSave = document.getElementById("btnHeaderSave");
-      btnSave.disabled = true;
-      btnSave.className = "px-5 py-2 bg-[#efeded] text-[#5d403b]/40 font-bold text-sm rounded-xl cursor-not-allowed transition-all";
-      btnSave.onclick = commitSetupSave;
+      updateSetupSaveButton();
+    }
+
+    function switchSetupTab(tabName) {
+      setupActiveTab = tabName === "customers" ? "customers" : "devices";
+      const btnDevices = document.getElementById("setupTabDevices");
+      const btnCustomers = document.getElementById("setupTabCustomers");
+      const titleEl = document.getElementById("setupSectionTitle");
+      const groupsContainer = document.getElementById("setupGroupsContainer");
+      const customersContainer = document.getElementById("setupCustomersContainer");
+
+      if (setupActiveTab === "devices") {
+        if (btnDevices) btnDevices.className = "px-3 h-7 rounded-xl text-xs font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-default flex items-center justify-center";
+        if (btnCustomers) btnCustomers.className = "px-3 h-7 rounded-xl text-xs font-semibold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer flex items-center justify-center";
+        if (titleEl) titleEl.textContent = "Slots & Devices";
+        if (groupsContainer) groupsContainer.classList.remove("hidden");
+        if (customersContainer) customersContainer.classList.add("hidden");
+      } else {
+        if (btnCustomers) btnCustomers.className = "px-3 h-7 rounded-xl text-xs font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-default flex items-center justify-center";
+        if (btnDevices) btnDevices.className = "px-3 h-7 rounded-xl text-xs font-semibold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer flex items-center justify-center";
+        if (titleEl) titleEl.textContent = "Customers";
+        if (groupsContainer) groupsContainer.classList.add("hidden");
+        if (customersContainer) customersContainer.classList.remove("hidden");
+      }
+
+      renderSetupView();
+    }
+
+    function handleSetupAdd() {
+      if (setupActiveTab === "customers") {
+        handleAddCustomer();
+      } else {
+        handleAddDevice();
+      }
     }
 
     function getNextXXName() {
@@ -1040,9 +1311,9 @@
                 </button>
                 <div class="flex flex-col min-w-0">
                   <button type="button" onclick="openRenameModal('${dev.id}')" class="text-sm font-semibold text-[#1b1c1c] text-left hover:underline cursor-pointer">
-                    ${dev.label}
+                    ${escapeHtml(dev.label)}
                   </button>
-                  <span class="text-xs text-[#5d403b]">${isOut ? `${dev.customer} â€¢${dev.event}` : (isInactive ? "Inactive" : "Available")}</span>
+                  <span class="text-xs text-[#5d403b]">${isOut ? `${escapeHtml(dev.customer)} • ${escapeHtml(dev.event)}` : (isInactive ? "Inactive" : "Available")}</span>
                 </div>
               </div>
               ${toggleHtml}
@@ -1054,6 +1325,82 @@
 
       const vLabel = document.getElementById("versionLabel");
       if (vLabel) vLabel.textContent = APP_VERSION;
+
+      renderSetupCustomersView();
+      updateSetupFabState();
+      updateSetupSaveButton();
+    }
+
+    function renderSetupCustomersView() {
+      const container = document.getElementById("setupCustomersContainer");
+      if (!container || !setupWorkingStore) return;
+      container.innerHTML = "";
+
+      const customers = setupWorkingStore.customers || [];
+      if (customers.length === 0) {
+        container.innerHTML = `<p class="text-xs text-[#916f69] text-center py-8">No customers added yet. Tap + to add one.</p>`;
+        return;
+      }
+
+      customers.forEach(cust => {
+        const isPlaceholder = (cust.name || "").trim() === CUSTOMER_PLACEHOLDER_NAME;
+        const isActive = Boolean(cust.is_active);
+
+        const card = document.createElement("div");
+        card.id = `setup_cust_${cust.id}`;
+        card.className = "w-full bg-white rounded-xl p-3 shadow-sm flex items-center justify-between gap-3";
+
+        const nameColorClass = isPlaceholder
+          ? "text-[#b80000] italic"
+          : (isActive ? "text-[#1b1c1c]" : "text-[#9e9e9e]");
+
+        card.innerHTML = `
+          <button type="button" onclick="openCustomerRenameModal('${cust.id}')" class="text-sm font-semibold ${nameColorClass} text-left hover:underline cursor-pointer truncate min-w-0 flex-1">
+            ${escapeHtml(cust.name)}
+          </button>
+          <label class="relative inline-flex items-center cursor-pointer shrink-0">
+            <input type="checkbox" ${isActive ? "checked" : ""} class="sr-only peer" onchange="handleSetupCustomerActiveToggle('${cust.id}', this.checked)">
+            <div class="w-11 h-6 bg-[#dbdad9] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#b80000]"></div>
+          </label>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function handleSetupCustomerActiveToggle(custId, isChecked) {
+      if (!setupWorkingStore) return;
+      const target = (setupWorkingStore.customers || []).find(c => c.id === custId);
+      if (target) {
+        target.is_active = isChecked;
+        setSetupDirty();
+        renderSetupCustomersView();
+      }
+    }
+
+    function handleAddCustomer() {
+      if (!setupWorkingStore) {
+        setupWorkingStore = JSON.parse(JSON.stringify(globalStore));
+      }
+      if (!Array.isArray(setupWorkingStore.customers)) {
+        setupWorkingStore.customers = [];
+      }
+      if (hasUneditedCustomerPlaceholder(setupWorkingStore)) return;
+
+      const newCustId = `cust_${Date.now()}`;
+      setupWorkingStore.customers.push({
+        id: newCustId,
+        name: CUSTOMER_PLACEHOLDER_NAME,
+        is_active: true
+      });
+
+      renderSetupView();
+
+      setTimeout(() => {
+        const targetCard = document.getElementById(`setup_cust_${newCustId}`);
+        if (targetCard) {
+          targetCard.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
     }
 
     function toggleSetupGroup(id, btn) {
@@ -1126,6 +1473,7 @@
     }
 
     function commitSetupSave() {
+      if (hasUneditedCustomerPlaceholder(setupWorkingStore)) return;
       globalStore = JSON.parse(JSON.stringify(setupWorkingStore));
       saveStore(globalStore);
       setSetupClean();
@@ -1202,13 +1550,36 @@
       closeSwapModal();
     }
 
-    // Rename Modal
+    // Rename Modal (Devices & Customers)
     function openRenameModal(devId) {
+      activeRenameMode = "device";
       activeRenameDeviceId = devId;
+      activeRenameCustomerId = null;
       const dev = setupWorkingStore.devices.find(d => d.id === devId);
       document.getElementById("renameModalTitle").textContent = `Rename Device (${dev ? dev.label : devId})`;
       const input = document.getElementById("inputRename");
+      input.placeholder = "New label (e.g. XX01)";
+      input.className = "w-full h-11 bg-[#f5f3f3] text-sm px-3 rounded-lg focus:outline-none font-code";
       input.value = dev ? dev.label : "";
+      document.getElementById("btnConfirmRename").textContent = "Rename";
+      validateRenameInput();
+      document.getElementById("renameModal").classList.remove("hidden");
+      setScrollLock(true);
+      setTimeout(() => input.focus(), 50);
+    }
+
+    function openCustomerRenameModal(custId) {
+      activeRenameMode = "customer";
+      activeRenameCustomerId = custId;
+      activeRenameDeviceId = null;
+      const cust = (setupWorkingStore.customers || []).find(c => c.id === custId);
+      const isPlaceholder = cust && (cust.name || "").trim() === CUSTOMER_PLACEHOLDER_NAME;
+      document.getElementById("renameModalTitle").textContent = isPlaceholder ? "Add Customer" : "Rename Customer";
+      const input = document.getElementById("inputRename");
+      input.placeholder = "Customer name";
+      input.className = "w-full h-11 bg-[#f5f3f3] text-sm px-3 rounded-lg focus:outline-none";
+      input.value = (cust && !isPlaceholder) ? cust.name : "";
+      document.getElementById("btnConfirmRename").textContent = isPlaceholder ? "Apply" : "Rename";
       validateRenameInput();
       document.getElementById("renameModal").classList.remove("hidden");
       setScrollLock(true);
@@ -1219,6 +1590,7 @@
       document.getElementById("renameModal").classList.add("hidden");
       setScrollLock(false);
       activeRenameDeviceId = null;
+      activeRenameCustomerId = null;
     }
 
     function validateRenameInput() {
@@ -1226,6 +1598,52 @@
       const btn = document.getElementById("btnConfirmRename");
       const hint = document.getElementById("renameHint");
       const val = input.value.trim();
+
+      if (activeRenameMode === "customer") {
+        const currentCust = (setupWorkingStore.customers || []).find(c => c.id === activeRenameCustomerId);
+
+        if (!val) {
+          btn.disabled = true;
+          btn.className = "px-4 py-1.5 bg-[#efeded] text-[#5d403b]/40 text-xs font-bold rounded-lg cursor-not-allowed";
+          hint.textContent = "Customer name cannot be empty.";
+          hint.className = "text-[11px] text-[#b80000] -mt-1";
+          return;
+        }
+
+        if (val === CUSTOMER_PLACEHOLDER_NAME) {
+          btn.disabled = true;
+          btn.className = "px-4 py-1.5 bg-[#efeded] text-[#5d403b]/40 text-xs font-bold rounded-lg cursor-not-allowed";
+          hint.textContent = "Please enter an actual customer name.";
+          hint.className = "text-[11px] text-[#b80000] -mt-1";
+          return;
+        }
+
+        const duplicateCust = (setupWorkingStore.customers || []).some(
+          c => c.id !== activeRenameCustomerId && (c.name || "").trim().toUpperCase() === val.toUpperCase()
+        );
+        if (duplicateCust) {
+          btn.disabled = true;
+          btn.className = "px-4 py-1.5 bg-[#efeded] text-[#5d403b]/40 text-xs font-bold rounded-lg cursor-not-allowed";
+          hint.textContent = `"${val}" already exists.`;
+          hint.className = "text-[11px] text-[#b80000] -mt-1";
+          return;
+        }
+
+        if (currentCust && currentCust.name.trim() === val) {
+          btn.disabled = true;
+          btn.className = "px-4 py-1.5 bg-[#efeded] text-[#5d403b]/40 text-xs font-bold rounded-lg cursor-not-allowed";
+          hint.textContent = "Current customer name.";
+          hint.className = "text-[11px] text-[#916f69] -mt-1";
+          return;
+        }
+
+        btn.disabled = false;
+        btn.className = "px-4 py-1.5 bg-[#b80000] hover:bg-[#8b0000] text-white text-xs font-bold rounded-lg cursor-pointer transition-colors";
+        hint.textContent = "Valid customer name.";
+        hint.className = "text-[11px] text-[#2e7d32] -mt-1";
+        return;
+      }
+
       const currentDev = setupWorkingStore.devices.find(d => d.id === activeRenameDeviceId);
 
       if (!val) {
@@ -1268,18 +1686,44 @@
     }
 
     document.getElementById("inputRename").addEventListener("input", validateRenameInput);
+    document.getElementById("inputRename").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !document.getElementById("btnConfirmRename").disabled) {
+        e.preventDefault();
+        confirmRenameAction();
+      }
+    });
 
     function confirmRenameAction() {
-      const newLabel = document.getElementById("inputRename").value.trim();
-      if (!isValidDeviceName(newLabel)) return;
+      const newVal = document.getElementById("inputRename").value.trim();
 
-      const duplicate = setupWorkingStore.devices.some(d => d.id !== activeRenameDeviceId && (d.label || '').toUpperCase() === newLabel.toUpperCase());
+      if (activeRenameMode === "customer") {
+        if (!newVal || newVal === CUSTOMER_PLACEHOLDER_NAME) return;
+        const duplicateCust = (setupWorkingStore.customers || []).some(
+          c => c.id !== activeRenameCustomerId && (c.name || "").trim().toUpperCase() === newVal.toUpperCase()
+        );
+        if (duplicateCust) return;
+
+        if (activeRenameCustomerId) {
+          const cust = (setupWorkingStore.customers || []).find(c => c.id === activeRenameCustomerId);
+          if (cust) {
+            cust.name = newVal;
+            setSetupDirty();
+            renderSetupView();
+          }
+        }
+        closeRenameModal();
+        return;
+      }
+
+      if (!isValidDeviceName(newVal)) return;
+
+      const duplicate = setupWorkingStore.devices.some(d => d.id !== activeRenameDeviceId && (d.label || '').toUpperCase() === newVal.toUpperCase());
       if (duplicate) return;
 
-      if (newLabel && activeRenameDeviceId) {
+      if (newVal && activeRenameDeviceId) {
         const dev = setupWorkingStore.devices.find(d => d.id === activeRenameDeviceId);
         if (dev) {
-          dev.label = newLabel;
+          dev.label = newVal;
           setSetupDirty();
           renderSetupView();
         }
@@ -1400,7 +1844,10 @@
             throw new Error("Invalid structure");
           }
           stagedImportData = parsed;
-          hint.textContent = `Valid backup (${parsed.devices.length} devices detected)`;
+          const custCount = Array.isArray(parsed.customers) ? parsed.customers.length : 0;
+          hint.textContent = custCount > 0
+            ? `Valid backup (${parsed.devices.length} devices, ${custCount} customers)`
+            : `Valid backup (${parsed.devices.length} devices detected)`;
           hint.className = "text-[11px] text-[#2e7d32] text-center mt-0.5";
         } catch (err) {
           stagedImportData = null;
@@ -1422,7 +1869,8 @@
           { slot_number: 4, slot_tag: "#04", device_id: null },
           { slot_number: 5, slot_tag: "#05", device_id: null }
         ],
-        devices: []
+        devices: [],
+        customers: []
       };
 
       const jsonStr = JSON.stringify(resetData, null, 2);
@@ -1444,7 +1892,7 @@
         baseName = baseName.replace(/\.json$/i, "");
         const fileName = `${baseName}.json`;
 
-        const targetData = setupWorkingStore || globalStore;
+        const targetData = ensureEmptySlotBuffer(JSON.parse(JSON.stringify(setupWorkingStore || globalStore)));
         const jsonStr = JSON.stringify(targetData, null, 2);
         const blob = new Blob([jsonStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
