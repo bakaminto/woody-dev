@@ -69,7 +69,7 @@
           <!-- Center Tower: Month Housing (Double Height) -->
           <div class="bg-[#efeded] h-14 p-1 rounded-2xl flex items-center justify-center shadow-xs z-10 -mx-0.5">
             <button type="button" id="tabMonth" onclick="handleMonthBadgeClick()"
-              class="w-[92px] h-12 rounded-xl text-lg font-bold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer tracking-wider flex items-center justify-center whitespace-nowrap">NOV</button>
+              class="w-[92px] h-12 rounded-xl font-bold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer flex flex-col items-center justify-center whitespace-nowrap">NOV</button>
           </div>
 
           <!-- Right Wing: List Housing -->
@@ -91,7 +91,7 @@
         </div>
 
         <!-- Static Telemetry Bar (Out / Office / Inactive) -->
-        <div class="flex items-center justify-center gap-2 w-full select-none" id="telemetryBar">
+        <div class="hidden flex items-center justify-center gap-2 w-full select-none" id="telemetryBar">
           <div class="flex-1 py-1.5 rounded-lg bg-[#fbc02d] text-[#1a1a1a] font-bold text-xs text-center shadow-sm"
             id="countOut">Out: 0</div>
           <div class="flex-1 py-1.5 rounded-lg bg-[#2e7d32] text-white font-bold text-xs text-center shadow-sm"
@@ -117,7 +117,7 @@
   </header>
 
   <!-- ==================== ROOT VIEWS CONTAINER ==================== -->
-  <main class="flex-1 w-full pt-[162px] px-3 overflow-y-auto overscroll-contain">
+  <main class="flex-1 w-full pt-[110px] px-3 overflow-y-auto overscroll-contain">
 
     <!-- VIEW 1A: GRID VIEW -->
     <section id="viewGrid" class="block pb-[calc(106px+env(safe-area-inset-bottom,0px))] max-w-md mx-auto w-full">
@@ -550,11 +550,21 @@
         const tabGrid = document.getElementById("tabGrid");
         const tabList = document.getElementById("tabList");
         const tabMonth = document.getElementById("tabMonth");
+        const telemetryBar = document.getElementById("telemetryBar");
+        const mainEl = document.querySelector("main");
+
+        if (telemetryBar) {
+          telemetryBar.classList.toggle("hidden", viewName === "calendar");
+        }
+        if (mainEl) {
+          mainEl.classList.toggle("pt-[110px]", viewName === "calendar");
+          mainEl.classList.toggle("pt-[162px]", viewName !== "calendar");
+        }
 
         // Base styles for inactive tabs
         tabGrid.className = "px-3.5 h-7 rounded-xl text-xs font-semibold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer flex items-center justify-center";
         tabList.className = "px-3.5 h-7 rounded-xl text-xs font-semibold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer flex items-center justify-center";
-        tabMonth.className = "w-[92px] h-12 rounded-xl text-lg font-bold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer tracking-wider flex items-center justify-center whitespace-nowrap";
+        tabMonth.className = "w-[92px] h-12 rounded-xl font-bold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer flex flex-col items-center justify-center whitespace-nowrap";
 
         if (viewName === "grid") {
           tabGrid.className = "px-3.5 h-7 rounded-xl text-xs font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-pointer flex items-center justify-center";
@@ -567,7 +577,7 @@
           document.getElementById("viewList").classList.remove("hidden");
           renderListView();
         } else if (viewName === "calendar") {
-          tabMonth.className = "w-[92px] h-12 rounded-xl text-lg font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-pointer tracking-wider flex items-center justify-center whitespace-nowrap";
+          tabMonth.className = "w-[92px] h-12 rounded-xl font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-pointer flex flex-col items-center justify-center whitespace-nowrap";
           updateHeaderCenterBadge();
           document.getElementById("viewCalendar").classList.remove("hidden");
           renderCalendarView();
@@ -577,6 +587,11 @@
           });
         }
       } else if (viewName === "detail") {
+        const mainEl = document.querySelector("main");
+        if (mainEl) {
+          mainEl.classList.remove("pt-[110px]");
+          mainEl.classList.add("pt-[162px]");
+        }
         navMain.classList.add("hidden");
         navSub.classList.remove("hidden");
         subHeaderTitle.textContent = "";
@@ -586,6 +601,11 @@
         activeDetailDeviceId = params.id;
         initDetailView(params.id);
       } else if (viewName === "setup") {
+        const mainEl = document.querySelector("main");
+        if (mainEl) {
+          mainEl.classList.remove("pt-[110px]");
+          mainEl.classList.add("pt-[162px]");
+        }
         navMain.classList.add("hidden");
         navSub.classList.remove("hidden");
         subHeaderTitle.textContent = "Slots & Devices";
@@ -1465,25 +1485,34 @@
 
     // Selected Date state (defaults to Today's real date on fresh launch)
     const _initNow = new Date();
-    let selectedDate = new Date(_initNow.getFullYear(), _initNow.getMonth(), _initNow.getDate());
+    const todayAnchor = new Date(_initNow.getFullYear(), _initNow.getMonth(), _initNow.getDate());
+    let selectedDate = new Date(todayAnchor.getTime());
+
+    function renderHeaderCalendarBadge(year, monthIndex) {
+      const tabMonth = document.getElementById("tabMonth");
+      if (!tabMonth) return;
+      tabMonth.innerHTML = `
+        <span class="text-base font-bold leading-none tracking-wider">${MONTH_NAMES[monthIndex]}</span>
+        <span class="text-[11px] font-semibold leading-none tracking-wider opacity-80 mt-0.5">${year}</span>
+      `;
+    }
 
     function updateHeaderCenterBadge() {
       const tabMonth = document.getElementById("tabMonth");
       if (!tabMonth) return;
       if (currentView === "calendar") {
-        tabMonth.textContent = MONTH_NAMES[selectedDate.getMonth()];
+        renderHeaderCalendarBadge(selectedDate.getFullYear(), selectedDate.getMonth());
       } else {
         const dPad = selectedDate.getDate() < 10 ? `0${selectedDate.getDate()}` : `${selectedDate.getDate()}`;
         const mPad = (selectedDate.getMonth() + 1) < 10 ? `0${selectedDate.getMonth() + 1}` : `${selectedDate.getMonth() + 1}`;
-        tabMonth.textContent = `${mPad}/${dPad}`;
+        tabMonth.innerHTML = `<span class="text-lg font-bold leading-none tracking-wider">${mPad}/${dPad}</span>`;
       }
     }
 
     function handleMonthBadgeClick() {
       if (currentView === "calendar") {
         scrollCalendarToDate(selectedDate, false);
-        const tabMonth = document.getElementById("tabMonth");
-        if (tabMonth) tabMonth.textContent = MONTH_NAMES[selectedDate.getMonth()];
+        updateHeaderCenterBadge();
       } else {
         const footer = document.getElementById("timelineFooter");
         if (footer) footer.classList.add("hidden");
@@ -1597,7 +1626,10 @@
       return { greenSegments, yellowSegments };
     }
 
-    function renderSegmentedBarHtml(yellowSegments, greenSegments) {
+    function renderSegmentedBarHtml(yellowSegments, greenSegments, isInactive = false) {
+      if (isInactive) {
+        return `<div class="w-11 h-2.5 rounded-full bg-[#dbdad9]"></div>`;
+      }
       let segments = "";
       // Yellow (Out) on the left
       for (let i = 0; i < yellowSegments; i++) {
@@ -1667,26 +1699,33 @@
 
           // Deterministic device occupancy per date
           const occ = getMockDayOccupancy(row, col, cellDate);
+          const isPastDate = cellDate.getTime() < todayAnchor.getTime();
+          const isInactivePast = isPastDate && occ.out === 0;
           const seg = getMergedSegmentCounts(occ.out, occ.office, 20);
 
           const dateKey = `${cellDate.getFullYear()}-${String(cellDate.getMonth() + 1).padStart(2, '0')}-${String(cellDate.getDate()).padStart(2, '0')}`;
 
-          const cell = document.createElement("button");
-          cell.type = "button";
+          const cell = document.createElement(isInactivePast ? "div" : "button");
+          if (!isInactivePast) {
+            cell.type = "button";
+            cell.onclick = () => {
+              selectedDate = new Date(cellDate);
+              updateTimelineFooter();
+              switchView("grid");
+            };
+          }
           cell.id = `cal_day_${dateKey}`;
           cell.dataset.calDate = dateKey;
-          cell.onclick = () => {
-            selectedDate = new Date(cellDate);
-            updateTimelineFooter();
-            switchView("grid");
-          };
 
-          // Alternating month shades (2 light grey tones to easily distinguish months)
-          const isEvenMonth = cellDate.getMonth() % 2 === 0;
-          const bgClass = isEvenMonth ? "bg-[#f5f4f4]" : "bg-[#eae8e8]";
-          const borderClass = isEvenMonth ? "border-[#e3e1e1]" : "border-[#dad8d8]";
-
-          cell.className = `flex flex-col items-center justify-center py-2 rounded-2xl overflow-hidden border ${borderClass} ${bgClass} shadow-xs active:scale-95 transition-all cursor-pointer h-[58px]`;
+          if (isInactivePast) {
+            cell.className = "flex flex-col items-center justify-center w-full h-[58px] rounded-2xl overflow-hidden border-2 border-dashed border-[#9e9e9e] text-[#9e9e9e] select-none cursor-default";
+          } else {
+            // Alternating month shades (2 light grey tones to easily distinguish months)
+            const isEvenMonth = cellDate.getMonth() % 2 === 0;
+            const bgClass = isEvenMonth ? "bg-[#f5f4f4]" : "bg-[#eae8e8]";
+            const borderClass = isEvenMonth ? "border-[#e3e1e1]" : "border-[#dad8d8]";
+            cell.className = `flex flex-col items-center justify-center w-full h-[58px] rounded-2xl overflow-hidden border ${borderClass} ${bgClass} shadow-xs active:scale-95 transition-all cursor-pointer`;
+          }
 
           // Date formatting: first of month carries month number in mm/dd format (e.g. "11/01"), other dates use 2-digit day (e.g. "03")
           const isFirstOfMonth = (cellDate.getDate() === 1);
@@ -1702,7 +1741,8 @@
           }
 
           // Upper Row: Date display (capsule pill matching status bar width, widened if first of month)
-          let datePillClass = `${pillWidthClass} h-[22px] flex items-center justify-center text-sm font-bold leading-none text-[#1b1c1c] text-center select-none`;
+          const dateTextColor = isInactivePast ? "text-[#9e9e9e]" : "text-[#1b1c1c]";
+          let datePillClass = `${pillWidthClass} h-[22px] flex items-center justify-center text-sm font-bold leading-none ${dateTextColor} text-center select-none`;
           if (isSelected) {
             datePillClass = `${pillWidthClass} h-[22px] rounded-full bg-[#b80000] text-white shadow-xs flex items-center justify-center text-sm font-bold leading-none text-center select-none`;
           }
@@ -1715,9 +1755,9 @@
               </span>
             </div>
 
-            <!-- Bottom Row: 5-Segment Merged Status Pill (Yellow Out on Left + Green Office on Right) -->
+            <!-- Bottom Row: Status Pill (Light Grey if inactive past, 5-Segment Yellow Out + Green Office otherwise) -->
             <div class="flex items-center justify-center w-full mt-1.5">
-              ${renderSegmentedBarHtml(seg.yellowSegments, seg.greenSegments)}
+              ${renderSegmentedBarHtml(seg.yellowSegments, seg.greenSegments, isInactivePast)}
             </div>
           `;
 
@@ -1756,10 +1796,10 @@
           const tile = centerEl ? centerEl.closest("[data-cal-date]") : null;
           if (tile && tile.dataset.calDate) {
             const parts = tile.dataset.calDate.split("-");
+            const y = parseInt(parts[0], 10);
             const m = parseInt(parts[1], 10) - 1;
-            const tabMonth = document.getElementById("tabMonth");
-            if (tabMonth && currentView === "calendar") {
-              tabMonth.textContent = MONTH_NAMES[m];
+            if (currentView === "calendar") {
+              renderHeaderCalendarBadge(y, m);
             }
           }
         });
