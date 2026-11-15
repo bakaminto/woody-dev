@@ -1703,7 +1703,7 @@
         for (let col = 0; col < CALENDAR_COLS; col++) {
           const dayOffset = (row * CALENDAR_COLS) + col;
           const cellDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + dayOffset);
-          const isSelected = isSameDate(cellDate, selectedDate);
+          const isToday = isSameDate(cellDate, today);
 
           // Deterministic device occupancy per date (future & today dates are never inactive)
           const occ = getMockDayOccupancy(row, col, cellDate);
@@ -1748,10 +1748,10 @@
             pillWidthClass = "px-2 min-w-11";
           }
 
-          // Upper Row: Date display (capsule pill matching status bar width, widened if first of month)
+          // Upper Row: Date display (capsule pill matching status bar width, widened if first of month; red pill stays anchored on today)
           const dateTextColor = isInactivePast ? "text-[#9e9e9e]" : "text-[#1b1c1c]";
           let datePillClass = `${pillWidthClass} h-[22px] flex items-center justify-center text-sm font-bold leading-none ${dateTextColor} text-center select-none`;
-          if (isSelected) {
+          if (isToday) {
             datePillClass = `${pillWidthClass} h-[22px] rounded-full bg-[#b80000] text-white shadow-xs flex items-center justify-center text-sm font-bold leading-none text-center select-none`;
           }
 
