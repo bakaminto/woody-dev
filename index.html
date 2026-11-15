@@ -117,7 +117,7 @@
       </div>
 
       <!-- Setup Sub-View Toggle (Row 2 in Header) -->
-      <div id="setupHeaderToggle" class="hidden self-center mx-auto bg-[#efeded] h-9 p-1 rounded-2xl grid grid-cols-2 gap-1 items-center select-none">
+      <div id="setupHeaderToggle" class="hidden self-center mx-auto mt-1.5 bg-[#efeded] h-9 p-1 rounded-2xl grid grid-cols-2 gap-1 items-center select-none">
         <button type="button" id="setupTabDevices" onclick="switchSetupTab('devices')"
           class="px-3 h-7 rounded-xl text-xs font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-default flex items-center justify-center">Devices</button>
         <button type="button" id="setupTabCustomers" onclick="switchSetupTab('customers')"
@@ -595,6 +595,7 @@
       const setupHeaderToggle = document.getElementById("setupHeaderToggle");
 
       setupFABs.classList.add("hidden");
+      if (navSub) navSub.classList.remove("h-14");
       if (setupHeaderTitle) setupHeaderTitle.classList.add("hidden");
       if (setupHeaderToggle) setupHeaderToggle.classList.add("hidden");
 
@@ -650,6 +651,7 @@
         applyMainTopPadding("setup");
         navMain.classList.add("hidden");
         navSub.classList.remove("hidden");
+        navSub.classList.add("h-14");
         if (setupHeaderTitle) setupHeaderTitle.classList.remove("hidden");
         if (setupHeaderToggle) setupHeaderToggle.classList.remove("hidden");
         setupFABs.classList.remove("hidden");
@@ -1993,11 +1995,10 @@
     function applyMainTopPadding(viewName) {
       const mainEl = document.querySelector("main");
       if (!mainEl) return;
-      const padPx = viewName === "calendar" ? "110px" : (viewName === "setup" ? "136px" : "162px");
-      mainEl.classList.toggle("pt-[110px]", viewName === "calendar");
-      mainEl.classList.toggle("pt-[136px]", viewName === "setup");
-      mainEl.classList.toggle("pt-[162px]", viewName !== "calendar" && viewName !== "setup");
-      mainEl.style.paddingTop = padPx;
+      const isCalendar = viewName === "calendar";
+      mainEl.classList.toggle("pt-[110px]", isCalendar);
+      mainEl.classList.toggle("pt-[162px]", !isCalendar);
+      mainEl.style.paddingTop = isCalendar ? "110px" : "162px";
     }
 
     function renderHeaderTwoLineBadge(topText, bottomText) {
