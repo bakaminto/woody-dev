@@ -102,7 +102,7 @@
       </div>
 
       <!-- Secondary Screen Navigation (Detail & Setup Views) -->
-      <div id="navSub" class="hidden w-full flex items-center justify-between gap-2">
+      <div id="navSub" class="hidden h-14 w-full flex items-center justify-between gap-2">
         <button type="button" id="btnHeaderBack" onclick="handleHeaderBack()"
           class="px-4 py-2 bg-[#efeded] hover:bg-[#e3e2e2] text-[#1b1c1c] font-semibold text-sm rounded-xl transition-colors cursor-pointer shrink-0">
           Back
@@ -120,6 +120,9 @@
         <button type="button" id="setupTabCustomers" onclick="switchSetupTab('customers')"
           class="px-3 h-7 rounded-xl text-xs font-semibold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer flex items-center justify-center">Customers</button>
       </div>
+
+      <!-- Detail Row-2 Spacer (Matches Grid/List/Settings Header Height) -->
+      <div id="detailHeaderSpacer" class="hidden mt-1.5 h-9" aria-hidden="true"></div>
     </div>
   </header>
 
@@ -560,10 +563,11 @@
       const navSub = document.getElementById("navSub");
       const setupFABs = document.getElementById("setupFABs");
       const setupHeaderToggle = document.getElementById("setupHeaderToggle");
+      const detailHeaderSpacer = document.getElementById("detailHeaderSpacer");
 
       setupFABs.classList.add("hidden");
-      if (navSub) navSub.classList.remove("h-14");
       if (setupHeaderToggle) setupHeaderToggle.classList.add("hidden");
+      if (detailHeaderSpacer) detailHeaderSpacer.classList.add("hidden");
 
       if (viewName === "grid" || viewName === "list" || viewName === "calendar") {
         navMain.classList.remove("hidden");
@@ -608,6 +612,7 @@
         applyMainTopPadding("detail");
         navMain.classList.add("hidden");
         navSub.classList.remove("hidden");
+        if (detailHeaderSpacer) detailHeaderSpacer.classList.remove("hidden");
         document.getElementById("viewDetail").classList.remove("hidden");
 
         originView = prevView === "list" ? "list" : "grid";
@@ -617,7 +622,6 @@
         applyMainTopPadding("setup");
         navMain.classList.add("hidden");
         navSub.classList.remove("hidden");
-        navSub.classList.add("h-14");
         if (setupHeaderToggle) setupHeaderToggle.classList.remove("hidden");
         setupFABs.classList.remove("hidden");
         document.getElementById("viewSetup").classList.remove("hidden");
@@ -816,7 +820,7 @@
                 <span class="text-sm font-semibold truncate text-[#1b1c1c]">${escapeHtml(group.customer)}</span>
                 <p class="text-xs text-[#5d403b] truncate">${escapeHtml(dev.event || "No event")}</p>
                 <div class="text-[11px] text-[#916f69] font-medium mt-0.5">
-                  ${dev.due_date ? `Due: ${dev.due_date}` : ""} ${dev.out_date ? `&bull; Sent: ${dev.out_date}` : ""}
+                  ${[dev.out_date ? `Out: ${dev.out_date}` : "", dev.due_date ? `Due: ${dev.due_date}` : ""].filter(Boolean).join(" &bull; ")}
                 </div>
               </div>
             </div>
@@ -1468,7 +1472,7 @@
       }
       if (hasUneditedCustomerPlaceholder(setupWorkingStore)) return;
 
-      const newCustId = `cust_${Date.now()}`;
+      const newCustId = `cust_${Date.now()}_${setupWorkingStore.customers.length + 1}`;
       setupWorkingStore.customers.push({
         id: newCustId,
         name: CUSTOMER_PLACEHOLDER_NAME,
