@@ -2586,61 +2586,33 @@
     const CALENDAR_PAST_DAYS = 90; // 18 rows * 5 = 90 days (~13 weeks)
     const CALENDAR_FUTURE_DAYS = 275; // 55 rows * 5 = 275 days (~39 weeks)
 
-    // Calculate 5-segment merged status pill: Out (Yellow #fbc02d) + Overdue (Translucent Yellow) + Office (Green #2e7d32)
-    function getMergedSegmentCounts(outCount, overdueCount, officeCount) {
-      const total = outCount + overdueCount + officeCount;
+    // Calculate 5-segment merged status pill: Out + Overdue (Yellow #fbc02d) + Office (Green #2e7d32)
+    function getMergedSegmentCounts(outCount, officeCount) {
+      const total = outCount + officeCount;
       if (total <= 0) {
-        return { yellowSegments: 0, overdueSegments: 0, greenSegments: 0 };
+        return { yellowSegments: 0, greenSegments: 0 };
       }
-
-      const counts = [outCount, overdueCount, officeCount];
-      const alloc = counts.map(c => (c > 0 ? 1 : 0));
-      let remaining = 5 - (alloc[0] + alloc[1] + alloc[2]);
-
-      if (remaining > 0) {
-        const ideals = counts.map(c => (c / total) * 5);
-        for (let i = 0; i < 3; i++) {
-          const extra = Math.max(0, Math.floor(ideals[i]) - alloc[i]);
-          const take = Math.min(extra, remaining);
-          alloc[i] += take;
-          remaining -= take;
-        }
-        while (remaining > 0) {
-          let bestIdx = -1;
-          let bestDeficit = -Infinity;
-          for (let i = 0; i < 3; i++) {
-            if (counts[i] === 0) continue;
-            const deficit = ideals[i] - alloc[i];
-            if (deficit > bestDeficit) {
-              bestDeficit = deficit;
-              bestIdx = i;
-            }
-          }
-          if (bestIdx === -1) break;
-          alloc[bestIdx]++;
-          remaining--;
-        }
+      if (outCount <= 0) {
+        return { yellowSegments: 0, greenSegments: 5 };
       }
-
-      return {
-        yellowSegments: alloc[0],
-        overdueSegments: alloc[1],
-        greenSegments: alloc[2]
-      };
+      if (officeCount <= 0 || outCount >= total) {
+        return { yellowSegments: 5, greenSegments: 0 };
+      }
+      let yellowSegments = Math.round((outCount / total) * 5);
+      if (yellowSegments <= 0) yellowSegments = 1;
+      if (yellowSegments >= 5) yellowSegments = 4;
+      const greenSegments = 5 - yellowSegments;
+      return { yellowSegments, greenSegments };
     }
 
-    function renderSegmentedBarHtml(yellowSegments, overdueSegments, greenSegments, isGreyBar = false) {
+    function renderSegmentedBarHtml(yellowSegments, greenSegments, isGreyBar = false) {
       if (isGreyBar) {
         return `<div class="w-11 h-2.5 rounded-full bg-[#dbdad9]"></div>`;
       }
       let segments = "";
-      // Solid Yellow (Out) on the left
+      // Yellow (Out + Overdue) on the left
       for (let i = 0; i < yellowSegments; i++) {
         segments += `<div class="flex-1 h-full bg-[#fbc02d]"></div>`;
-      }
-      // Translucent Yellow (Overdue past due until Today)
-      for (let i = 0; i < overdueSegments; i++) {
-        segments += `<div class="flex-1 h-full bg-[#fbf9f9]"><div class="w-full h-full bg-[#fbc02d]/40"></div></div>`;
       }
       // Green (Office) on the right
       for (let i = 0; i < greenSegments; i++) {
@@ -2659,7 +2631,7 @@
       return Math.round((a.getTime() - b.getTime()) / 86400000);
     }
 
-    function buildCalendarStatesByDay(store, startKey, endKey, todayKey, validDeviceIdSet) {
+    function buildCalendarOutSetsByDay(store, startKey, endKey, todayKey, validDeviceIdSet) {
       const byDay = new Map();
       if (!store || !Array.isArray(store.bookings)) return byDay;
 
@@ -2671,18 +2643,18 @@
         byDevice.get(b.device_id).push(b);
       });
 
-      const addDateRange = (rangeStart, rangeEnd, setName, devId) => {
+      const addDateRange = (rangeStart, rangeEnd, devId) => {
         const clampedStart = rangeStart > startKey ? rangeStart : startKey;
         const clampedEnd = rangeEnd < endKey ? rangeEnd : endKey;
         if (!clampedStart || !clampedEnd || clampedStart > clampedEnd) return;
         let cursor = clampedStart;
         while (cursor && cursor <= clampedEnd) {
-          let entry = byDay.get(cursor);
-          if (!entry) {
-            entry = { outSet: new Set(), overdueSet: new Set() };
-            byDay.set(cursor, entry);
+          let set = byDay.get(cursor);
+          if (!set) {
+            set = new Set();
+            byDay.set(cursor, set);
           }
-          entry[setName].add(devId);
+          set.add(devId);
           const next = addDaysToDateKey(cursor, 1);
           if (!next || next <= cursor) break;
           cursor = next;
@@ -2693,7 +2665,7 @@
         devBookings.sort((a, b) => a.out_date.localeCompare(b.out_date));
         for (let i = 0; i < devBookings.length; i++) {
           const bk = devBookings[i];
-          addDateRange(bk.out_date, bk.due_date, "outSet", devId);
+          addDateRange(bk.out_date, bk.due_date, devId);
 
           const overdueStart = addDaysToDateKey(bk.due_date, 1);
           if (overdueStart && overdueStart <= todayKey) {
@@ -2701,7 +2673,7 @@
             const nextLimit = nextBk ? addDaysToDateKey(nextBk.out_date, -1) : todayKey;
             const overdueEnd = (nextLimit && nextLimit < todayKey) ? nextLimit : todayKey;
             if (overdueStart <= overdueEnd) {
-              addDateRange(overdueStart, overdueEnd, "overdueSet", devId);
+              addDateRange(overdueStart, overdueEnd, devId);
             }
           }
         }
@@ -2754,7 +2726,7 @@
       const devicesList = (globalStore && Array.isArray(globalStore.devices)) ? globalStore.devices : [];
       const allDeviceIdSet = new Set(devicesList.map(d => d && d.id).filter(Boolean));
       const activeDeviceIdSet = new Set(devicesList.filter(d => d && d.is_active).map(d => d.id));
-      const statesByDay = buildCalendarStatesByDay(globalStore, startKey, endKey, todayKey, allDeviceIdSet);
+      const outSetsByDay = buildCalendarOutSetsByDay(globalStore, startKey, endKey, todayKey, allDeviceIdSet);
 
       for (let row = 0; row < totalRows; row++) {
         for (let col = 0; col < CALENDAR_COLS; col++) {
@@ -2763,24 +2735,20 @@
           const isToday = isSameDate(cellDate, today);
           const dateKey = formatDateInputValue(cellDate);
 
-          const dayState = statesByDay.get(dateKey);
-          const outCount = dayState ? dayState.outSet.size : 0;
-          const overdueCount = dayState ? dayState.overdueSet.size : 0;
+          const outSet = outSetsByDay.get(dateKey);
+          const outCount = outSet ? outSet.size : 0;
           let activeBusyCount = 0;
-          if (dayState) {
-            dayState.outSet.forEach(devId => {
-              if (activeDeviceIdSet.has(devId)) activeBusyCount++;
-            });
-            dayState.overdueSet.forEach(devId => {
+          if (outSet) {
+            outSet.forEach(devId => {
               if (activeDeviceIdSet.has(devId)) activeBusyCount++;
             });
           }
           const officeCount = Math.max(0, activeDeviceIdSet.size - activeBusyCount);
 
           const isPastDate = cellDate.getTime() < today.getTime();
-          const isSettledPastLook = isPastDate && outCount === 0 && overdueCount === 0;
-          const isGreyBar = isSettledPastLook || (outCount === 0 && overdueCount === 0 && officeCount === 0);
-          const seg = getMergedSegmentCounts(outCount, overdueCount, officeCount);
+          const isSettledPastLook = isPastDate && outCount === 0;
+          const isGreyBar = isSettledPastLook || (outCount === 0 && officeCount === 0);
+          const seg = getMergedSegmentCounts(outCount, officeCount);
 
           // All days (including past days) remain touchable buttons
           const cell = document.createElement("button");
@@ -2831,9 +2799,9 @@
               </span>
             </div>
 
-            <!-- Bottom Row: Status Pill (Light Grey if settled past or zero active fleet, 5-Segment Solid Yellow Out + Translucent Yellow Overdue + Green Office) -->
+            <!-- Bottom Row: Status Pill (Light Grey if settled past or zero active fleet, 5-Segment Yellow Out/Overdue + Green Office) -->
             <div class="flex items-center justify-center w-full mt-1.5">
-              ${renderSegmentedBarHtml(seg.yellowSegments, seg.overdueSegments, seg.greenSegments, isGreyBar)}
+              ${renderSegmentedBarHtml(seg.yellowSegments, seg.greenSegments, isGreyBar)}
             </div>
           `;
 
