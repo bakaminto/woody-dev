@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Flex:wght@600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Roboto+Flex:wght@600;700&display=swap"
     rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -52,7 +52,7 @@
 <body class="bg-[#fbf9f9] text-[#1b1c1c] flex flex-col h-full h-[100dvh] overflow-hidden select-none relative">
 
   <!-- ==================== GLOBAL APP BAR ==================== -->
-  <header class="fixed top-0 w-full z-40 bg-[#fbf9f9]/80 backdrop-blur-xl border-b border-[#e9e8e7] px-3">
+  <header class="fixed top-0 w-full z-40 bg-[#fbf9f9] border-b border-[#e9e8e7] px-3">
     <div class="h-6"></div>
     <div class="pb-3 pt-1 max-w-md mx-auto w-full flex flex-col gap-2.5">
       <!-- Main Navigation Toggle (Grid / List / Calendar Views) -->
@@ -262,7 +262,7 @@
 
   <!-- ==================== TIMELINE FOOTER (FIXED BOTTOM) ==================== -->
   <footer id="timelineFooter"
-    class="fixed bottom-0 inset-x-0 z-40 bg-[#fbf9f9]/80 backdrop-blur-xl border-t border-[#e9e8e7] px-3 pt-2.5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] shadow-lg select-none">
+    class="fixed bottom-0 inset-x-0 z-40 bg-[#fbf9f9] border-t border-[#e9e8e7] px-3 pt-2.5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] shadow-lg select-none">
     <div id="timelineFooterInner" class="max-w-md mx-auto grid grid-cols-[38px_1fr_38px] gap-2 items-stretch">
 
       <!-- Previous Week Button (Tall 2-measure span) -->
@@ -529,19 +529,39 @@
       ) || null;
     }
 
-    function hasDeviceOngoingOrFutureBooking(store, deviceId, todayKey) {
-      if (!store || !deviceId || !todayKey) return false;
-      return (store.bookings || []).some(
-        b => b && b.device_id === deviceId && b.due_date && b.due_date >= todayKey
-      );
+    function getOverdueBookingForDeviceOnDate(store, deviceId, dateKey, todayKey) {
+      if (!store || !deviceId || !dateKey || !todayKey) return null;
+      if (dateKey > todayKey) return null;
+      const endedBefore = (store.bookings || [])
+        .filter(b => b && b.device_id === deviceId && b.due_date && b.due_date < dateKey)
+        .sort((a, b) => a.due_date.localeCompare(b.due_date));
+      return endedBefore.length > 0 ? endedBefore[endedBefore.length - 1] : null;
     }
 
-    function getDeviceViewStateOnDate(store, dev, dateKey) {
+    function hasDeviceBlockingBookings(store, deviceId) {
+      return getBookingsForDevice(store, deviceId).length > 0;
+    }
+
+    function getDeviceViewStateOnDate(store, dev, dateKey, todayKey = null) {
       if (!dev) return { state: "inactive", booking: null };
       const booking = getBookingForDeviceOnDate(store, dev.id, dateKey);
       if (booking) return { state: "out", booking };
+      const effectiveTodayKey = todayKey || formatDateInputValue(getTodayAnchor());
+      const overdueBooking = getOverdueBookingForDeviceOnDate(store, dev.id, dateKey, effectiveTodayKey);
+      if (overdueBooking) return { state: "overdue", booking: overdueBooking };
       if (!dev.is_active) return { state: "inactive", booking: null };
       return { state: "office", booking: null };
+    }
+
+    function openOverdueDeviceDetail(devId, booking) {
+      if (booking && booking.due_date) {
+        const dueDt = parseDateKey(booking.due_date);
+        if (dueDt) {
+          selectedDate = dueDt;
+          updateTimelineFooter();
+        }
+      }
+      switchView("detail", { id: devId });
     }
 
     function findOccupyingBooking(sortedBookings, dateKey) {
@@ -816,15 +836,18 @@
         tabList.className = "px-3.5 h-7 rounded-xl text-xs font-semibold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer flex items-center justify-center";
         tabMonth.className = "w-[92px] h-12 rounded-xl font-bold text-[#5d403b] hover:text-[#1b1c1c] transition-all cursor-pointer flex flex-col items-center justify-center whitespace-nowrap";
 
+        const mainEl = document.querySelector("main");
         if (viewName === "grid") {
           tabGrid.className = "px-3.5 h-7 rounded-xl text-xs font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-pointer flex items-center justify-center";
           updateHeaderCenterBadge();
           document.getElementById("viewGrid").classList.remove("hidden");
           renderGridView();
+          if (mainEl) mainEl.scrollTop = 0;
         } else if (viewName === "list") {
           tabList.className = "px-3.5 h-7 rounded-xl text-xs font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-pointer flex items-center justify-center";
           updateHeaderCenterBadge();
           document.getElementById("viewList").classList.remove("hidden");
+          if (mainEl) mainEl.scrollTop = 0;
           renderListView();
         } else if (viewName === "calendar") {
           tabMonth.className = "w-[92px] h-12 rounded-xl font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-pointer flex flex-col items-center justify-center whitespace-nowrap";
@@ -837,6 +860,8 @@
           });
         }
       } else if (viewName === "detail") {
+        const mainEl = document.querySelector("main");
+        if (mainEl) mainEl.scrollTop = 0;
         applyMainTopPadding("detail");
         navMain.classList.add("hidden");
         navSub.classList.remove("hidden");
@@ -847,6 +872,8 @@
         activeDetailDeviceId = params.id;
         initDetailView(params.id);
       } else if (viewName === "setup") {
+        const mainEl = document.querySelector("main");
+        if (mainEl) mainEl.scrollTop = 0;
         applyMainTopPadding("setup");
         navMain.classList.add("hidden");
         navSub.classList.remove("hidden");
@@ -875,6 +902,7 @@
     function renderGridView() {
       const devMap = new Map((globalStore.devices || []).map(d => [d.id, d]));
       const dateKey = formatDateInputValue(selectedDate);
+      const todayKey = formatDateInputValue(getTodayAnchor());
       const container = document.getElementById("gridContainer");
       container.innerHTML = "";
 
@@ -892,7 +920,7 @@
           return;
         }
 
-        const { state } = getDeviceViewStateOnDate(globalStore, dev, dateKey);
+        const { state, booking } = getDeviceViewStateOnDate(globalStore, dev, dateKey, todayKey);
 
         if (state === "inactive") {
           const inactiveCell = document.createElement("div");
@@ -906,6 +934,14 @@
           btn.className = "flex flex-col items-center justify-center w-full h-[58px] rounded-2xl bg-[#fbc02d] text-[#1a1a1a] shadow-xs hover:brightness-105 active:scale-95 transition-all select-none cursor-pointer";
           btn.innerHTML = `<span class="font-bold text-sm leading-none truncate max-w-full px-1">${dev.label}</span><span class="text-xs font-semibold leading-tight mt-1">${slot.slot_tag}</span>`;
           btn.onclick = () => switchView("detail", { id: dev.id });
+          container.appendChild(btn);
+        } else if (state === "overdue") {
+          outCount++;
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "flex flex-col items-center justify-center w-full h-[58px] rounded-2xl bg-[#fbc02d]/40 text-[#1a1a1a] shadow-xs hover:brightness-105 active:scale-95 transition-all select-none cursor-pointer";
+          btn.innerHTML = `<span class="font-bold text-sm leading-none truncate max-w-full px-1">${dev.label}</span><span class="text-xs font-semibold leading-tight mt-1">${slot.slot_tag}</span>`;
+          btn.onclick = () => openOverdueDeviceDetail(dev.id, booking);
           container.appendChild(btn);
         } else {
           officeCount++;
@@ -948,6 +984,8 @@
     function renderListView() {
       const devMap = new Map((globalStore.devices || []).map(d => [d.id, d]));
       const dateKey = formatDateInputValue(selectedDate);
+      const todayKey = formatDateInputValue(getTodayAnchor());
+      const dueList = [];
       const outList = [];
       const officeList = [];
 
@@ -956,11 +994,11 @@
         const dev = devMap.get(slot.device_id);
         if (!dev) return;
 
-        const { state, booking } = getDeviceViewStateOnDate(globalStore, dev, dateKey);
+        const { state, booking } = getDeviceViewStateOnDate(globalStore, dev, dateKey, todayKey);
         if (state === "inactive") return;
 
-        if (state === "out") {
-          outList.push({
+        if (state === "out" || state === "overdue") {
+          const item = {
             ...dev,
             slot_number: slot.slot_number,
             slot_tag: slot.slot_tag,
@@ -969,8 +1007,14 @@
             customer: getBookingCustomerName(globalStore, booking),
             event: booking.event || "",
             out_date: booking.out_date,
-            due_date: booking.due_date
-          });
+            due_date: booking.due_date,
+            isDue: state === "overdue"
+          };
+          if (state === "overdue") {
+            dueList.push(item);
+          } else {
+            outList.push(item);
+          }
         } else {
           officeList.push({
             ...dev,
@@ -981,7 +1025,7 @@
       });
 
       const getOutCustomerName = (dev) => (dev.customer || "").trim() || "Unspecified Customer";
-      outList.sort((a, b) => {
+      const compareOutItems = (a, b) => {
         const custA = getOutCustomerName(a);
         const custB = getOutCustomerName(b);
         const cmpCust = custA.localeCompare(custB, undefined, { sensitivity: "base" }) || custA.localeCompare(custB);
@@ -993,25 +1037,36 @@
         if (cmpEv !== 0) return cmpEv;
 
         return (a.slot_number || 0) - (b.slot_number || 0);
-      });
+      };
+
+      dueList.sort(compareOutItems);
+      outList.sort(compareOutItems);
 
       document.getElementById("badgeListCountOffice").textContent = officeList.length;
-      document.getElementById("countOut").textContent = `Out: ${outList.length}`;
+      document.getElementById("countOut").textContent = `Out: ${outList.length + dueList.length}`;
       document.getElementById("countOffice").textContent = `Office: ${officeList.length}`;
 
-      const outGroups = [];
-      const groupByKey = new Map();
-      outList.forEach(dev => {
-        const customerLabel = getOutCustomerName(dev);
-        const key = customerLabel.toLowerCase();
-        let group = groupByKey.get(key);
-        if (!group) {
-          group = { customer: customerLabel, items: [] };
-          groupByKey.set(key, group);
-          outGroups.push(group);
-        }
-        group.items.push(dev);
-      });
+      const buildCustomerGroups = (items, isDueGroup) => {
+        const groups = [];
+        const groupByKey = new Map();
+        items.forEach(dev => {
+          const customerLabel = getOutCustomerName(dev);
+          const key = customerLabel.toLowerCase();
+          let group = groupByKey.get(key);
+          if (!group) {
+            group = { customer: customerLabel, isDue: isDueGroup, items: [] };
+            groupByKey.set(key, group);
+            groups.push(group);
+          }
+          group.items.push(dev);
+        });
+        return groups;
+      };
+
+      const outGroups = [
+        ...buildCustomerGroups(dueList, true),
+        ...buildCustomerGroups(outList, false)
+      ];
 
       const outGroupsContainer = document.getElementById("listOutGroupsContainer");
       outGroupsContainer.innerHTML = "";
@@ -1032,9 +1087,12 @@
         headerBtn.type = "button";
         headerBtn.onclick = () => toggleAccordion(contentId, iconId);
         headerBtn.className = "w-full p-4 flex items-center justify-between text-left cursor-pointer hover:bg-[#efeded] transition-colors gap-2";
+        const headingHtml = group.isDue
+          ? `<h2 class="text-xs uppercase font-semibold tracking-wider text-[#5d403b] truncate"><span class="font-extrabold">(DUE)</span> Out on Job - ${escapeHtml(group.customer)}</h2>`
+          : `<h2 class="text-xs uppercase font-bold tracking-wider text-[#5d403b] truncate">Out on Job - ${escapeHtml(group.customer)}</h2>`;
         headerBtn.innerHTML = `
           <div class="flex items-center gap-2 min-w-0 flex-1">
-            <h2 class="text-xs uppercase font-bold tracking-wider text-[#5d403b] truncate">Out on Job - ${escapeHtml(group.customer)}</h2>
+            ${headingHtml}
             <span class="px-2 py-0.5 rounded-full bg-[#e3e2e2] text-xs font-bold shrink-0">${group.items.length}</span>
           </div>
           <svg id="${iconId}" class="w-5 h-5 text-[#916f69] transition-transform duration-200 fill-current shrink-0"
@@ -1057,11 +1115,16 @@
           row.onclick = () => {
             listTargetOpenSection = contentId;
             listTargetScrollDevId = dev.id;
-            switchView("detail", { id: dev.id });
+            if (group.isDue) {
+              openOverdueDeviceDetail(dev.id, dev);
+            } else {
+              switchView("detail", { id: dev.id });
+            }
           };
+          const rowBadgeBgClass = group.isDue ? "bg-[#fbc02d]/40 text-[#1a1a1a]" : "bg-[#fbc02d] text-[#1a1a1a]";
           row.innerHTML = `
             <div class="flex items-center gap-3 min-w-0 flex-1">
-              <div class="w-12 h-12 rounded-xl bg-[#fbc02d] text-[#1a1a1a] flex flex-col items-center justify-center shrink-0 shadow-sm font-bold text-xs font-code">
+              <div class="w-12 h-12 rounded-xl ${rowBadgeBgClass} flex flex-col items-center justify-center shrink-0 shadow-sm font-bold text-xs font-code">
                 ${dev.label}
               </div>
               <div class="flex flex-col min-w-0 flex-1">
@@ -1545,7 +1608,7 @@
       if (originView === "list") {
         const selectedDateKey = formatDateInputValue(selectedDate);
         const { state } = getDeviceViewStateOnDate(globalStore, dev, selectedDateKey);
-        listTargetOpenSection = state === "out" ? "out" : "listOfficeContent";
+        listTargetOpenSection = (state === "out" || state === "overdue") ? "out" : "listOfficeContent";
         listTargetScrollDevId = dev.id;
       }
       switchView(originView);
@@ -1721,19 +1784,21 @@
           } else {
             card.id = `setup_row_${dev.id}`;
             const todayKey = formatDateInputValue(getTodayAnchor());
-            const todayBooking = getBookingForDeviceOnDate(setupWorkingStore, dev.id, todayKey);
-            const hasUpcomingBooking = hasDeviceOngoingOrFutureBooking(setupWorkingStore, dev.id, todayKey);
-            const isOut = Boolean(todayBooking);
-            const isOffice = !isOut && dev.is_active;
-            const isInactive = !isOut && !dev.is_active;
+            const todayState = getDeviceViewStateOnDate(setupWorkingStore, dev, todayKey, todayKey);
+            const hasBlockingBooking = hasDeviceBlockingBookings(setupWorkingStore, dev.id);
+            const isOut = todayState.state === "out";
+            const isOverdue = todayState.state === "overdue";
+            const isOffice = !isOut && !isOverdue && dev.is_active;
+            const isInactive = !isOut && !isOverdue && !dev.is_active;
 
             let badgeBg = "#dbdad9";
             let badgeText = "#1b1c1c";
             if (isOut) { badgeBg = "#fbc02d"; badgeText = "#1a1a1a"; }
+            else if (isOverdue) { badgeBg = "rgba(251, 192, 45, 0.4)"; badgeText = "#1a1a1a"; }
             else if (isOffice) { badgeBg = "#2e7d32"; badgeText = "#ffffff"; }
 
             let toggleHtml = "";
-            if (!hasUpcomingBooking) {
+            if (!hasBlockingBooking) {
               toggleHtml = `
                 <label class="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" ${dev.is_active ? "checked" : ""} class="sr-only peer" onchange="handleSetupDeviceActiveToggle('${dev.id}', this.checked)">
@@ -1743,8 +1808,10 @@
             }
 
             const subtitleText = isOut
-              ? `${escapeHtml(getBookingCustomerName(setupWorkingStore, todayBooking))} • ${escapeHtml(todayBooking.event || "")}`
-              : (hasUpcomingBooking ? "Booked upcoming" : (isInactive ? "Inactive" : "Available"));
+              ? `${escapeHtml(getBookingCustomerName(setupWorkingStore, todayState.booking))} • ${escapeHtml(todayState.booking.event || "")}`
+              : (isOverdue
+                ? `(DUE) ${escapeHtml(getBookingCustomerName(setupWorkingStore, todayState.booking))} • ${escapeHtml(todayState.booking.event || "")}`
+                : (hasBlockingBooking ? "Booked upcoming" : (isInactive ? "Inactive" : "Available")));
 
             card.className = "w-full bg-white rounded-xl p-3 shadow-sm flex items-center justify-between gap-2";
             card.innerHTML = `
@@ -2519,34 +2586,61 @@
     const CALENDAR_PAST_DAYS = 90; // 18 rows * 5 = 90 days (~13 weeks)
     const CALENDAR_FUTURE_DAYS = 275; // 55 rows * 5 = 275 days (~39 weeks)
 
-    // Calculate 5-segment merged status pill: Office (Green #2e7d32) + Out (Yellow #fbc02d)
-    // 5 segments, 20% steps. Full office is full green, full out is full yellow.
-    function getMergedSegmentCounts(outCount, officeCount) {
-      const total = outCount + officeCount;
+    // Calculate 5-segment merged status pill: Out (Yellow #fbc02d) + Overdue (Translucent Yellow) + Office (Green #2e7d32)
+    function getMergedSegmentCounts(outCount, overdueCount, officeCount) {
+      const total = outCount + overdueCount + officeCount;
       if (total <= 0) {
-        return { greenSegments: 0, yellowSegments: 0 };
+        return { yellowSegments: 0, overdueSegments: 0, greenSegments: 0 };
       }
-      if (outCount <= 0) {
-        return { greenSegments: 5, yellowSegments: 0 };
+
+      const counts = [outCount, overdueCount, officeCount];
+      const alloc = counts.map(c => (c > 0 ? 1 : 0));
+      let remaining = 5 - (alloc[0] + alloc[1] + alloc[2]);
+
+      if (remaining > 0) {
+        const ideals = counts.map(c => (c / total) * 5);
+        for (let i = 0; i < 3; i++) {
+          const extra = Math.max(0, Math.floor(ideals[i]) - alloc[i]);
+          const take = Math.min(extra, remaining);
+          alloc[i] += take;
+          remaining -= take;
+        }
+        while (remaining > 0) {
+          let bestIdx = -1;
+          let bestDeficit = -Infinity;
+          for (let i = 0; i < 3; i++) {
+            if (counts[i] === 0) continue;
+            const deficit = ideals[i] - alloc[i];
+            if (deficit > bestDeficit) {
+              bestDeficit = deficit;
+              bestIdx = i;
+            }
+          }
+          if (bestIdx === -1) break;
+          alloc[bestIdx]++;
+          remaining--;
+        }
       }
-      if (officeCount <= 0 || outCount >= total) {
-        return { greenSegments: 0, yellowSegments: 5 };
-      }
-      let yellowSegments = Math.round((outCount / total) * 5);
-      if (yellowSegments <= 0) yellowSegments = 1;
-      if (yellowSegments >= 5) yellowSegments = 4;
-      const greenSegments = 5 - yellowSegments;
-      return { greenSegments, yellowSegments };
+
+      return {
+        yellowSegments: alloc[0],
+        overdueSegments: alloc[1],
+        greenSegments: alloc[2]
+      };
     }
 
-    function renderSegmentedBarHtml(yellowSegments, greenSegments, isGreyBar = false) {
+    function renderSegmentedBarHtml(yellowSegments, overdueSegments, greenSegments, isGreyBar = false) {
       if (isGreyBar) {
         return `<div class="w-11 h-2.5 rounded-full bg-[#dbdad9]"></div>`;
       }
       let segments = "";
-      // Yellow (Out) on the left
+      // Solid Yellow (Out) on the left
       for (let i = 0; i < yellowSegments; i++) {
         segments += `<div class="flex-1 h-full bg-[#fbc02d]"></div>`;
+      }
+      // Translucent Yellow (Overdue past due until Today)
+      for (let i = 0; i < overdueSegments; i++) {
+        segments += `<div class="flex-1 h-full bg-[#fbf9f9]"><div class="w-full h-full bg-[#fbc02d]/40"></div></div>`;
       }
       // Green (Office) on the right
       for (let i = 0; i < greenSegments; i++) {
@@ -2565,28 +2659,54 @@
       return Math.round((a.getTime() - b.getTime()) / 86400000);
     }
 
-    function buildBookingDeviceSetsByDay(store, startKey, endKey, validDeviceIdSet) {
+    function buildCalendarStatesByDay(store, startKey, endKey, todayKey, validDeviceIdSet) {
       const byDay = new Map();
       if (!store || !Array.isArray(store.bookings)) return byDay;
+
+      const byDevice = new Map();
       store.bookings.forEach(b => {
         if (!b || !b.device_id || !b.out_date || !b.due_date) return;
         if (validDeviceIdSet && !validDeviceIdSet.has(b.device_id)) return;
-        const clampedStart = b.out_date > startKey ? b.out_date : startKey;
-        const clampedEnd = b.due_date < endKey ? b.due_date : endKey;
-        if (clampedStart > clampedEnd) return;
+        if (!byDevice.has(b.device_id)) byDevice.set(b.device_id, []);
+        byDevice.get(b.device_id).push(b);
+      });
+
+      const addDateRange = (rangeStart, rangeEnd, setName, devId) => {
+        const clampedStart = rangeStart > startKey ? rangeStart : startKey;
+        const clampedEnd = rangeEnd < endKey ? rangeEnd : endKey;
+        if (!clampedStart || !clampedEnd || clampedStart > clampedEnd) return;
         let cursor = clampedStart;
         while (cursor && cursor <= clampedEnd) {
-          let set = byDay.get(cursor);
-          if (!set) {
-            set = new Set();
-            byDay.set(cursor, set);
+          let entry = byDay.get(cursor);
+          if (!entry) {
+            entry = { outSet: new Set(), overdueSet: new Set() };
+            byDay.set(cursor, entry);
           }
-          set.add(b.device_id);
+          entry[setName].add(devId);
           const next = addDaysToDateKey(cursor, 1);
           if (!next || next <= cursor) break;
           cursor = next;
         }
+      };
+
+      byDevice.forEach((devBookings, devId) => {
+        devBookings.sort((a, b) => a.out_date.localeCompare(b.out_date));
+        for (let i = 0; i < devBookings.length; i++) {
+          const bk = devBookings[i];
+          addDateRange(bk.out_date, bk.due_date, "outSet", devId);
+
+          const overdueStart = addDaysToDateKey(bk.due_date, 1);
+          if (overdueStart && overdueStart <= todayKey) {
+            const nextBk = devBookings[i + 1];
+            const nextLimit = nextBk ? addDaysToDateKey(nextBk.out_date, -1) : todayKey;
+            const overdueEnd = (nextLimit && nextLimit < todayKey) ? nextLimit : todayKey;
+            if (overdueStart <= overdueEnd) {
+              addDateRange(overdueStart, overdueEnd, "overdueSet", devId);
+            }
+          }
+        }
       });
+
       return byDay;
     }
 
@@ -2597,6 +2717,7 @@
       container.innerHTML = "";
 
       const today = getTodayAnchor();
+      const todayKey = formatDateInputValue(today);
       const calendarAnchor = getMondayOfWeek(today);
       const baseStartDate = new Date(calendarAnchor.getFullYear(), calendarAnchor.getMonth(), calendarAnchor.getDate() - CALENDAR_PAST_DAYS);
       const baseTotalDays = CALENDAR_PAST_DAYS + CALENDAR_FUTURE_DAYS;
@@ -2633,7 +2754,7 @@
       const devicesList = (globalStore && Array.isArray(globalStore.devices)) ? globalStore.devices : [];
       const allDeviceIdSet = new Set(devicesList.map(d => d && d.id).filter(Boolean));
       const activeDeviceIdSet = new Set(devicesList.filter(d => d && d.is_active).map(d => d.id));
-      const bookedSetsByDay = buildBookingDeviceSetsByDay(globalStore, startKey, endKey, allDeviceIdSet);
+      const statesByDay = buildCalendarStatesByDay(globalStore, startKey, endKey, todayKey, allDeviceIdSet);
 
       for (let row = 0; row < totalRows; row++) {
         for (let col = 0; col < CALENDAR_COLS; col++) {
@@ -2642,35 +2763,38 @@
           const isToday = isSameDate(cellDate, today);
           const dateKey = formatDateInputValue(cellDate);
 
-          const bookedSet = bookedSetsByDay.get(dateKey);
-          const outCount = bookedSet ? bookedSet.size : 0;
-          let activeOutCount = 0;
-          if (bookedSet) {
-            bookedSet.forEach(devId => {
-              if (activeDeviceIdSet.has(devId)) activeOutCount++;
+          const dayState = statesByDay.get(dateKey);
+          const outCount = dayState ? dayState.outSet.size : 0;
+          const overdueCount = dayState ? dayState.overdueSet.size : 0;
+          let activeBusyCount = 0;
+          if (dayState) {
+            dayState.outSet.forEach(devId => {
+              if (activeDeviceIdSet.has(devId)) activeBusyCount++;
+            });
+            dayState.overdueSet.forEach(devId => {
+              if (activeDeviceIdSet.has(devId)) activeBusyCount++;
             });
           }
-          const officeCount = Math.max(0, activeDeviceIdSet.size - activeOutCount);
+          const officeCount = Math.max(0, activeDeviceIdSet.size - activeBusyCount);
 
           const isPastDate = cellDate.getTime() < today.getTime();
-          const isInactivePast = isPastDate && outCount === 0;
-          const isGreyBar = isInactivePast || (outCount === 0 && officeCount === 0);
-          const seg = getMergedSegmentCounts(outCount, officeCount);
+          const isSettledPastLook = isPastDate && outCount === 0 && overdueCount === 0;
+          const isGreyBar = isSettledPastLook || (outCount === 0 && overdueCount === 0 && officeCount === 0);
+          const seg = getMergedSegmentCounts(outCount, overdueCount, officeCount);
 
-          const cell = document.createElement(isInactivePast ? "div" : "button");
-          if (!isInactivePast) {
-            cell.type = "button";
-            cell.onclick = () => {
-              selectedDate = new Date(cellDate);
-              updateTimelineFooter();
-              switchView("grid");
-            };
-          }
+          // All days (including past days) remain touchable buttons
+          const cell = document.createElement("button");
+          cell.type = "button";
+          cell.onclick = () => {
+            selectedDate = new Date(cellDate);
+            updateTimelineFooter();
+            switchView("grid");
+          };
           cell.id = `cal_day_${dateKey}`;
           cell.dataset.calDate = dateKey;
 
-          if (isInactivePast) {
-            cell.className = "flex flex-col items-center justify-center w-full h-[58px] rounded-2xl overflow-hidden border-2 border-dashed border-[#9e9e9e] text-[#9e9e9e] select-none cursor-default";
+          if (isSettledPastLook) {
+            cell.className = "flex flex-col items-center justify-center w-full h-[58px] rounded-2xl overflow-hidden border-2 border-dashed border-[#9e9e9e] text-[#9e9e9e] hover:bg-[#f0efef] active:scale-95 transition-all select-none cursor-pointer";
           } else {
             // Alternating month shades (2 light grey tones to easily distinguish months)
             const isEvenMonth = cellDate.getMonth() % 2 === 0;
@@ -2693,7 +2817,7 @@
           }
 
           // Upper Row: Date display (capsule pill matching status bar width, widened if first of month; red pill stays anchored on today)
-          const dateTextColor = isInactivePast ? "text-[#9e9e9e]" : "text-[#1b1c1c]";
+          const dateTextColor = isSettledPastLook ? "text-[#9e9e9e]" : "text-[#1b1c1c]";
           let datePillClass = `${pillWidthClass} h-[22px] flex items-center justify-center text-sm font-bold leading-none ${dateTextColor} text-center select-none`;
           if (isToday) {
             datePillClass = `${pillWidthClass} h-[22px] rounded-full bg-[#b80000] text-white shadow-xs flex items-center justify-center text-sm font-bold leading-none text-center select-none`;
@@ -2707,9 +2831,9 @@
               </span>
             </div>
 
-            <!-- Bottom Row: Status Pill (Light Grey if inactive past or zero active fleet, 5-Segment Yellow Out + Green Office otherwise) -->
+            <!-- Bottom Row: Status Pill (Light Grey if settled past or zero active fleet, 5-Segment Solid Yellow Out + Translucent Yellow Overdue + Green Office) -->
             <div class="flex items-center justify-center w-full mt-1.5">
-              ${renderSegmentedBarHtml(seg.yellowSegments, seg.greenSegments, isGreyBar)}
+              ${renderSegmentedBarHtml(seg.yellowSegments, seg.overdueSegments, seg.greenSegments, isGreyBar)}
             </div>
           `;
 
@@ -2793,10 +2917,7 @@
     // Startup Initialization
     setupCalendarScrollListener();
     updateTimelineFooter();
-    switchView("calendar");
-    requestAnimationFrame(() => {
-      scrollCalendarToDate(selectedDate, false);
-    });
+    switchView("grid");
 
     // Service Worker Registration
     if ('serviceWorker' in navigator) {
