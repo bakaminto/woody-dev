@@ -1192,6 +1192,7 @@
             slot_number: slot.slot_number,
             slot_tag: slot.slot_tag,
             booking_id: booking.id,
+            event_id: booking.event_id || null,
             customer_id: booking.customer_id,
             customer: getBookingCustomerName(globalStore, booking),
             event: getBookingEventName(globalStore, booking),
@@ -1214,14 +1215,21 @@
       });
 
       const getOutCustomerName = (dev) => (dev.customer || "").trim() || "Unspecified Customer";
+      const getOutEventName = (dev) => (dev.event || "").trim() || "No event";
       const compareOutItems = (a, b) => {
         const custA = getOutCustomerName(a);
         const custB = getOutCustomerName(b);
         const cmpCust = custA.localeCompare(custB, undefined, { sensitivity: "base" }) || custA.localeCompare(custB);
         if (cmpCust !== 0) return cmpCust;
 
-        const evA = (a.event || "").trim();
-        const evB = (b.event || "").trim();
+        const cmpOut = (a.out_date || "").localeCompare(b.out_date || "");
+        if (cmpOut !== 0) return cmpOut;
+
+        const cmpDue = (a.due_date || "").localeCompare(b.due_date || "");
+        if (cmpDue !== 0) return cmpDue;
+
+        const evA = getOutEventName(a);
+        const evB = getOutEventName(b);
         const cmpEv = evA.localeCompare(evB, undefined, { sensitivity: "base" }) || evA.localeCompare(evB);
         if (cmpEv !== 0) return cmpEv;
 
@@ -1235,15 +1243,18 @@
       document.getElementById("countOut").textContent = `Out: ${outList.length + dueList.length}`;
       document.getElementById("countOffice").textContent = `Office: ${officeList.length}`;
 
-      const buildCustomerGroups = (items, isDueGroup) => {
+      const buildEventGroups = (items, isDueGroup) => {
         const groups = [];
         const groupByKey = new Map();
         items.forEach(dev => {
           const customerLabel = getOutCustomerName(dev);
-          const key = customerLabel.toLowerCase();
+          const eventLabel = getOutEventName(dev);
+          const key = dev.event_id
+            ? `ev:${dev.event_id}`
+            : `${customerLabel.toLowerCase()}|${eventLabel.toLowerCase()}|${dev.out_date || ""}|${dev.due_date || ""}`;
           let group = groupByKey.get(key);
           if (!group) {
-            group = { customer: customerLabel, isDue: isDueGroup, items: [] };
+            group = { customer: customerLabel, event: eventLabel, isDue: isDueGroup, items: [] };
             groupByKey.set(key, group);
             groups.push(group);
           }
@@ -1253,8 +1264,8 @@
       };
 
       const outGroups = [
-        ...buildCustomerGroups(dueList, true),
-        ...buildCustomerGroups(outList, false)
+        ...buildEventGroups(dueList, true),
+        ...buildEventGroups(outList, false)
       ];
 
       const outGroupsContainer = document.getElementById("listOutGroupsContainer");
@@ -1277,8 +1288,8 @@
         headerBtn.onclick = () => toggleAccordion(contentId, iconId);
         headerBtn.className = "w-full p-4 flex items-center justify-between text-left cursor-pointer hover:bg-[#efeded] transition-colors gap-2";
         const headingHtml = group.isDue
-          ? `<h2 class="text-xs uppercase font-semibold tracking-wider text-[#5d403b] truncate"><span class="font-extrabold">(DUE)</span> Out on Job - ${escapeHtml(group.customer)}</h2>`
-          : `<h2 class="text-xs uppercase font-bold tracking-wider text-[#5d403b] truncate">Out on Job - ${escapeHtml(group.customer)}</h2>`;
+          ? `<h2 class="text-xs uppercase font-semibold tracking-wider text-[#5d403b] truncate"><span class="font-extrabold">(DUE)</span> Out on Job - ${escapeHtml(group.customer)} &bull; ${escapeHtml(group.event)}</h2>`
+          : `<h2 class="text-xs uppercase font-bold tracking-wider text-[#5d403b] truncate">Out on Job - ${escapeHtml(group.customer)} &bull; ${escapeHtml(group.event)}</h2>`;
         headerBtn.innerHTML = `
           <div class="flex items-center gap-2 min-w-0 flex-1">
             ${headingHtml}
@@ -1311,20 +1322,18 @@
             }
           };
           const rowBadgeBgClass = group.isDue ? "bg-[#fbc02d]/40 text-[#1a1a1a]" : "bg-[#fbc02d] text-[#1a1a1a]";
+          const dateSpanText = [dev.out_date, dev.due_date].filter(Boolean).join(" &bull; ");
           row.innerHTML = `
             <div class="flex items-center gap-3 min-w-0 flex-1">
               <div class="w-12 h-12 rounded-xl ${rowBadgeBgClass} flex flex-col items-center justify-center shrink-0 shadow-sm font-bold text-xs font-code">
                 ${dev.label}
               </div>
               <div class="flex flex-col min-w-0 flex-1">
-                <span class="text-sm font-semibold truncate text-[#1b1c1c]">${escapeHtml(group.customer)}</span>
-                <p class="text-xs text-[#5d403b] truncate">${escapeHtml(dev.event || "No event")}</p>
-                <div class="text-[11px] text-[#916f69] font-medium mt-0.5">
-                  ${[dev.out_date ? `Out: ${dev.out_date}` : "", dev.due_date ? `Due: ${dev.due_date}` : ""].filter(Boolean).join(" &bull; ")}
-                </div>
+                <span class="text-sm font-semibold truncate text-[#1b1c1c]">${escapeHtml(getOutEventName(dev))}</span>
+                <span class="text-xs text-[#5d403b] mt-0.5 truncate">${dateSpanText}</span>
               </div>
             </div>
-            <svg class="w-5 h-5 text-[#916f69] fill-current" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+            <svg class="w-5 h-5 text-[#916f69] fill-current shrink-0" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
           `;
           contentBox.appendChild(row);
         });
