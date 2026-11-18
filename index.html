@@ -39,6 +39,15 @@
       font-family: 'Roboto Flex', monospace;
     }
 
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
     #timelineFooterInner.invisible,
     #timelineFooterInner.invisible * {
       visibility: hidden !important;
@@ -164,7 +173,7 @@
     </section>
 
     <!-- VIEW 1C: CALENDAR VIEW (5-COLUMN CONTINUOUS ROLLING GRID) -->
-    <section id="viewCalendar" class="hidden pb-[calc(2rem+env(safe-area-inset-bottom,0px))] max-w-md mx-auto w-full">
+    <section id="viewCalendar" class="hidden pb-[calc(106px+env(safe-area-inset-bottom,0px))] max-w-md mx-auto w-full">
       <div class="flex flex-col w-full">
         <!-- 5 Columns Continuous Rolling Grid -->
         <div class="grid grid-cols-5 gap-2.5 w-full" id="calendarRollingGrid"></div>
@@ -176,9 +185,9 @@
       <div class="flex flex-col w-full gap-5">
         <div class="flex flex-col items-center justify-center pt-2">
           <div id="detailHeroBadge"
-            class="w-24 h-24 rounded-2xl shadow-sm flex flex-col items-center justify-center transition-colors select-none">
-            <span class="text-2xl font-bold leading-none" id="detailHeroLabel">--</span>
-            <span class="text-xs font-semibold mt-1 opacity-80" id="detailHeroSlot">#--</span>
+            class="w-28 h-[84px] rounded-2xl shadow-sm flex flex-col items-center justify-center transition-colors select-none">
+            <span class="text-xl font-bold leading-none truncate max-w-full px-2" id="detailHeroLabel">--</span>
+            <span class="text-base font-semibold leading-tight mt-1.5" id="detailHeroSlot">#--</span>
           </div>
 
           <div class="mt-4 w-48 bg-[#efeded] p-1 rounded-xl flex items-center justify-between">
@@ -258,81 +267,21 @@
 
   </main>
 
-  <!-- ==================== TIMELINE FOOTER (FIXED BOTTOM) ==================== -->
+  <!-- ==================== TIMELINE FOOTER (FIXED BOTTOM HORIZONTAL DATE CAROUSEL) ==================== -->
   <footer id="timelineFooter"
-    class="fixed bottom-0 inset-x-0 z-40 bg-[#fbf9f9] border-t border-[#e9e8e7] px-3 pt-2.5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] shadow-lg select-none">
-    <div id="timelineFooterInner" class="max-w-md mx-auto grid grid-cols-[38px_1fr_38px] gap-2 items-stretch">
+    class="fixed bottom-0 inset-x-0 z-40 bg-[#fbf9f9] border-t border-[#e9e8e7] px-3 pt-1 pb-[calc(0.625rem+env(safe-area-inset-bottom,0px))] shadow-lg select-none">
+    <div id="timelineFooterInner" class="max-w-md mx-auto">
+      <!-- Scrollable center-snapped day badges matching Calendar event badge frame -->
+      <div id="timelineDaysContainer"
+        class="relative h-[88px] flex items-center gap-0.5 overflow-x-auto no-scrollbar snap-x snap-mandatory"></div>
+    </div>
+  </footer>
 
-      <!-- Previous Week Button (Tall 2-measure span) -->
-      <button type="button" id="btnPrevWeek" onclick="handleMockWeekChange(-1)"
-        class="h-full bg-[#b80000] hover:bg-[#990000] active:scale-95 text-white rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-sm border border-[#b80000]"
-        title="Previous Week" aria-label="Previous Week">
-        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-          <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
-        </svg>
-      </button>
-
-      <!-- Center Content: Row 1 (7 Days) + Row 2 (Month & CW info) -->
-      <div class="flex flex-col gap-1.5 justify-center">
-
-        <!-- Row 1: 7 Weekday Buttons (Unified Pill Toggle Track) -->
-        <div class="bg-[#efeded] p-1 rounded-xl grid grid-cols-7 gap-0.5 w-full items-center" id="timelineDaysContainer">
-          <button type="button" onclick="selectMockDay(this)"
-            class="timeline-day-btn flex flex-col items-center justify-center py-1 rounded-lg text-[#5d403b] hover:text-[#1b1c1c] active:scale-95 transition-all cursor-pointer">
-            <span class="text-[9px] font-bold uppercase tracking-wider opacity-60">Mon</span>
-            <span class="text-xs font-semibold leading-tight">03</span>
-          </button>
-          <button type="button" onclick="selectMockDay(this)"
-            class="timeline-day-btn flex flex-col items-center justify-center py-1 rounded-lg text-[#5d403b] hover:text-[#1b1c1c] active:scale-95 transition-all cursor-pointer">
-            <span class="text-[9px] font-bold uppercase tracking-wider opacity-60">Tue</span>
-            <span class="text-xs font-semibold leading-tight">04</span>
-          </button>
-          <!-- Wednesday (Initial Active Day) -->
-          <button type="button" onclick="selectMockDay(this)"
-            class="timeline-day-btn flex flex-col items-center justify-center py-1 rounded-lg bg-white text-[#b80000] shadow-sm active:scale-95 transition-all cursor-pointer">
-            <span class="text-[9px] font-bold uppercase tracking-wider text-[#b80000]">Wed</span>
-            <span class="text-xs font-bold leading-tight text-[#b80000]">05</span>
-          </button>
-          <button type="button" onclick="selectMockDay(this)"
-            class="timeline-day-btn flex flex-col items-center justify-center py-1 rounded-lg text-[#5d403b] hover:text-[#1b1c1c] active:scale-95 transition-all cursor-pointer">
-            <span class="text-[9px] font-bold uppercase tracking-wider opacity-60">Thu</span>
-            <span class="text-xs font-semibold leading-tight">06</span>
-          </button>
-          <button type="button" onclick="selectMockDay(this)"
-            class="timeline-day-btn flex flex-col items-center justify-center py-1 rounded-lg text-[#5d403b] hover:text-[#1b1c1c] active:scale-95 transition-all cursor-pointer">
-            <span class="text-[9px] font-bold uppercase tracking-wider opacity-60">Fri</span>
-            <span class="text-xs font-semibold leading-tight">07</span>
-          </button>
-          <button type="button" onclick="selectMockDay(this)"
-            class="timeline-day-btn flex flex-col items-center justify-center py-1 rounded-lg text-[#5d403b] hover:text-[#1b1c1c] active:scale-95 transition-all cursor-pointer">
-            <span class="text-[9px] font-bold uppercase tracking-wider opacity-60">Sat</span>
-            <span class="text-xs font-semibold leading-tight">08</span>
-          </button>
-          <button type="button" onclick="selectMockDay(this)"
-            class="timeline-day-btn flex flex-col items-center justify-center py-1 rounded-lg text-[#5d403b] hover:text-[#1b1c1c] active:scale-95 transition-all cursor-pointer">
-            <span class="text-[9px] font-bold uppercase tracking-wider opacity-60">Sun</span>
-            <span class="text-xs font-semibold leading-tight">09</span>
-          </button>
-        </div>
-
-        <!-- Row 2: Year and Calendar Week (CW) Metadata -->
-        <div class="flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#1b1c1c]">
-          <span id="timelineYearLabel">2026</span>
-          <span class="opacity-30">•</span>
-          <span id="timelineCwLabel">CW #45</span>
-        </div>
-
-      </div>
-
-      <!-- Next Week Button (Tall 2-measure span) -->
-      <button type="button" id="btnNextWeek" onclick="handleMockWeekChange(1)"
-        class="h-full bg-[#b80000] hover:bg-[#990000] active:scale-95 text-white rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-sm border border-[#b80000]"
-        title="Next Week" aria-label="Next Week">
-        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-          <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
-        </svg>
-      </button>
-
+  <!-- ==================== CALENDAR EVENT FOOTER (FIXED BOTTOM) ==================== -->
+  <footer id="calendarFooter"
+    class="fixed bottom-0 inset-x-0 z-40 bg-[#fbf9f9] border-t border-[#e9e8e7] px-3 pt-1 pb-[calc(0.625rem+env(safe-area-inset-bottom,0px))] shadow-lg select-none hidden">
+    <div class="max-w-md mx-auto">
+      <div id="calendarEventsTrack" class="relative h-[88px] flex items-center gap-2.5 overflow-x-auto no-scrollbar px-0.5"></div>
     </div>
   </footer>
 
@@ -952,6 +901,8 @@
     let activeDetailBookingId = null;
     let detailBaseline = {};
     let detailCurrentStatus = "office";
+    let calendarSelectedDateKey = null;
+    let calendarSelectedEventId = null;
 
     let setupWorkingStore = null;
     let setupOpenGroupIds = new Set();
@@ -978,9 +929,10 @@
       const prevView = currentView;
       currentView = viewName;
 
-      // Handle footer visibility: only visible on Grid and List, completely hidden on Calendar, Detail, Setup
+      // Handle footer visibility: timelineFooter on Grid/List, calendarFooter on Calendar, hidden on Detail/Setup
       const timelineFooter = document.getElementById("timelineFooter");
       const timelineFooterInner = document.getElementById("timelineFooterInner");
+      const calendarFooter = document.getElementById("calendarFooter");
       if (timelineFooter) {
         if (viewName === "grid" || viewName === "list") {
           timelineFooter.classList.remove("hidden");
@@ -988,6 +940,9 @@
         } else {
           timelineFooter.classList.add("hidden");
         }
+      }
+      if (calendarFooter) {
+        calendarFooter.classList.toggle("hidden", viewName !== "calendar");
       }
 
       ["viewGrid", "viewList", "viewCalendar", "viewDetail", "viewSetup"].forEach(id => {
@@ -1030,6 +985,8 @@
           updateHeaderCenterBadge();
           document.getElementById("viewGrid").classList.remove("hidden");
           renderGridView();
+          updateTimelineFooter();
+          requestAnimationFrame(() => scrollTimelineToDate(selectedDate, false));
           if (mainEl) mainEl.scrollTop = 0;
         } else if (viewName === "list") {
           tabList.className = "px-3.5 h-7 rounded-xl text-xs font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-pointer flex items-center justify-center";
@@ -1037,13 +994,22 @@
           document.getElementById("viewList").classList.remove("hidden");
           if (mainEl) mainEl.scrollTop = 0;
           renderListView();
+          updateTimelineFooter();
+          requestAnimationFrame(() => scrollTimelineToDate(selectedDate, false));
         } else if (viewName === "calendar") {
+          if (prevView === "grid" || prevView === "list") {
+            const todayKey = formatDateInputValue(getTodayAnchor());
+            const selKey = formatDateInputValue(selectedDate);
+            calendarSelectedDateKey = selKey !== todayKey ? selKey : null;
+          }
           tabMonth.className = "w-[92px] h-12 rounded-xl font-bold bg-white text-[#b80000] shadow-sm transition-all cursor-pointer flex flex-col items-center justify-center whitespace-nowrap";
           updateHeaderCenterBadge();
           document.getElementById("viewCalendar").classList.remove("hidden");
           renderCalendarView();
+          renderCalendarEventFooter(true);
           scrollCalendarToDate(selectedDate, false);
           requestAnimationFrame(() => {
+            renderCalendarEventFooter(true);
             scrollCalendarToDate(selectedDate, false);
           });
         }
@@ -1087,20 +1053,35 @@
       }
     }
 
+    function buildEventHaloHtml(hasPrevSameRow, hasNextSameRow) {
+      const leftEdgeClass = hasPrevSameRow ? "-left-[5.5px]" : "-left-[4px] rounded-l-[20px] border-l";
+      const rightEdgeClass = hasNextSameRow ? "-right-[5.5px]" : "-right-[4px] rounded-r-[20px] border-r";
+      return `<div aria-hidden="true" class="pointer-events-none absolute -top-[4px] -bottom-[4px] ${leftEdgeClass} ${rightEdgeClass} border-y border-[#3f3f3f] bg-[#525252] z-0"></div>`;
+    }
+
     // Grid View
     function renderGridView() {
+      const GRID_COLS = 5;
       const devMap = new Map((globalStore.devices || []).map(d => [d.id, d]));
       const dateKey = formatDateInputValue(selectedDate);
       const todayKey = formatDateInputValue(getTodayAnchor());
+      const activeEvent = calendarSelectedEventId ? findEventById(globalStore, calendarSelectedEventId) : null;
       const container = document.getElementById("gridContainer");
       container.innerHTML = "";
 
       let outCount = 0;
       let officeCount = 0;
 
-      (globalStore.slots || []).forEach(slot => {
+      const slotInfos = (globalStore.slots || []).map(slot => {
         const dev = slot.device_id ? devMap.get(slot.device_id) : null;
+        if (!dev) return { slot, dev: null, state: "empty", booking: null, isEventDevice: false };
+        const { state, booking } = getDeviceViewStateOnDate(globalStore, dev, dateKey, todayKey);
+        const isEventDevice = Boolean(activeEvent && booking && booking.event_id === activeEvent.id);
+        return { slot, dev, state, booking, isEventDevice };
+      });
 
+      slotInfos.forEach((info, idx) => {
+        const { slot, dev, state, booking, isEventDevice } = info;
         if (!dev) {
           const emptyCell = document.createElement("div");
           emptyCell.className = "flex flex-col items-center justify-center w-full h-[58px] rounded-2xl border-2 border-dashed border-[#9e9e9e] text-[#9e9e9e] select-none cursor-default";
@@ -1109,38 +1090,50 @@
           return;
         }
 
-        const { state, booking } = getDeviceViewStateOnDate(globalStore, dev, dateKey, todayKey);
+        const col = idx % GRID_COLS;
+        const hasPrevSameRow = isEventDevice && col > 0 && Boolean(slotInfos[idx - 1] && slotInfos[idx - 1].isEventDevice);
+        const hasNextSameRow = isEventDevice && col < (GRID_COLS - 1) && Boolean(slotInfos[idx + 1] && slotInfos[idx + 1].isEventDevice);
+        const haloHtml = isEventDevice ? buildEventHaloHtml(hasPrevSameRow, hasNextSameRow) : "";
+        const labelHtml = `<span class="font-bold text-sm leading-none truncate max-w-full px-1">${dev.label}</span><span class="text-xs font-semibold leading-tight mt-1">${slot.slot_tag}</span>`;
 
         if (state === "inactive") {
           const inactiveCell = document.createElement("div");
-          inactiveCell.className = "flex flex-col items-center justify-center w-full h-[58px] rounded-2xl bg-[#dbdad9] text-[#1b1c1c] shadow-xs select-none cursor-default";
-          inactiveCell.innerHTML = `<span class="font-bold text-sm leading-none truncate max-w-full px-1">${dev.label}</span><span class="text-xs font-semibold leading-tight mt-1">${slot.slot_tag}</span>`;
+          inactiveCell.className = "relative w-full h-[58px] select-none cursor-default";
+          inactiveCell.innerHTML = `
+            ${haloHtml}
+            <div class="relative z-10 flex flex-col items-center justify-center w-full h-full rounded-2xl bg-[#dbdad9] text-[#1b1c1c] shadow-xs">
+              ${labelHtml}
+            </div>
+          `;
           container.appendChild(inactiveCell);
-        } else if (state === "out") {
+          return;
+        }
+
+        if (state === "out" || state === "overdue") {
           outCount++;
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "flex flex-col items-center justify-center w-full h-[58px] rounded-2xl bg-[#fbc02d] text-[#1a1a1a] shadow-xs hover:brightness-105 active:scale-95 transition-all select-none cursor-pointer";
-          btn.innerHTML = `<span class="font-bold text-sm leading-none truncate max-w-full px-1">${dev.label}</span><span class="text-xs font-semibold leading-tight mt-1">${slot.slot_tag}</span>`;
-          btn.onclick = () => switchView("detail", { id: dev.id });
-          container.appendChild(btn);
-        } else if (state === "overdue") {
-          outCount++;
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "flex flex-col items-center justify-center w-full h-[58px] rounded-2xl bg-[#fbc02d]/40 text-[#1a1a1a] shadow-xs hover:brightness-105 active:scale-95 transition-all select-none cursor-pointer";
-          btn.innerHTML = `<span class="font-bold text-sm leading-none truncate max-w-full px-1">${dev.label}</span><span class="text-xs font-semibold leading-tight mt-1">${slot.slot_tag}</span>`;
-          btn.onclick = () => openOverdueDeviceDetail(dev.id, booking);
-          container.appendChild(btn);
         } else {
           officeCount++;
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "flex flex-col items-center justify-center w-full h-[58px] rounded-2xl bg-[#2e7d32] text-white shadow-xs hover:brightness-105 active:scale-95 transition-all select-none cursor-pointer";
-          btn.innerHTML = `<span class="font-bold text-sm leading-none truncate max-w-full px-1">${dev.label}</span><span class="text-xs font-semibold leading-tight mt-1">${slot.slot_tag}</span>`;
-          btn.onclick = () => switchView("detail", { id: dev.id });
-          container.appendChild(btn);
         }
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "relative group w-full h-[58px] select-none cursor-pointer focus:outline-none";
+        btn.onclick = state === "overdue"
+          ? () => openOverdueDeviceDetail(dev.id, booking)
+          : () => switchView("detail", { id: dev.id });
+
+        let cardHtml = "";
+        if (state === "out") {
+          cardHtml = `<div class="relative z-10 flex flex-col items-center justify-center w-full h-full rounded-2xl bg-[#fbc02d] text-[#1a1a1a] shadow-xs group-hover:brightness-105 group-active:scale-95 transition-all">${labelHtml}</div>`;
+        } else if (state === "overdue") {
+          // Opaque #fbf9f9 base keeps bg-[#fbc02d]/40 readable over the dark grey event halo
+          cardHtml = `<div class="relative z-10 w-full h-full rounded-2xl bg-[#fbf9f9] shadow-xs group-hover:brightness-105 group-active:scale-95 transition-all"><div class="flex flex-col items-center justify-center w-full h-full rounded-2xl bg-[#fbc02d]/40 text-[#1a1a1a]">${labelHtml}</div></div>`;
+        } else {
+          cardHtml = `<div class="relative z-10 flex flex-col items-center justify-center w-full h-full rounded-2xl bg-[#2e7d32] text-white shadow-xs group-hover:brightness-105 group-active:scale-95 transition-all">${labelHtml}</div>`;
+        }
+
+        btn.innerHTML = `${haloHtml}${cardHtml}`;
+        container.appendChild(btn);
       });
 
       document.getElementById("countOut").textContent = `Out: ${outCount}`;
@@ -1325,8 +1318,9 @@
           const dateSpanText = [dev.out_date, dev.due_date].filter(Boolean).join(" &bull; ");
           row.innerHTML = `
             <div class="flex items-center gap-3 min-w-0 flex-1">
-              <div class="w-12 h-12 rounded-xl ${rowBadgeBgClass} flex flex-col items-center justify-center shrink-0 shadow-sm font-bold text-xs font-code">
-                ${dev.label}
+              <div class="w-16 h-12 rounded-xl ${rowBadgeBgClass} flex flex-col items-center justify-center shrink-0 shadow-sm select-none">
+                <span class="font-bold text-sm leading-none truncate max-w-full px-1">${escapeHtml(dev.label)}</span>
+                <span class="text-xs font-semibold leading-tight mt-0.5">${dev.slot_tag}</span>
               </div>
               <div class="flex flex-col min-w-0 flex-1">
                 <span class="text-sm font-semibold truncate text-[#1b1c1c]">${escapeHtml(getOutEventName(dev))}</span>
@@ -1359,8 +1353,9 @@
         };
         row.innerHTML = `
           <div class="flex items-center gap-3 min-w-0 flex-1">
-            <div class="w-12 h-12 rounded-xl bg-[#2e7d32] text-white flex flex-col items-center justify-center shrink-0 shadow-sm font-bold text-xs font-code">
-              ${dev.label}
+            <div class="w-16 h-12 rounded-xl bg-[#2e7d32] text-white flex flex-col items-center justify-center shrink-0 shadow-sm select-none">
+              <span class="font-bold text-sm leading-none truncate max-w-full px-1">${escapeHtml(dev.label)}</span>
+              <span class="text-xs font-semibold leading-tight mt-0.5">${dev.slot_tag}</span>
             </div>
             <span class="text-sm font-semibold text-[#1b1c1c]">Available</span>
           </div>
@@ -1686,11 +1681,11 @@
       const btnOffice = document.getElementById("btnDetailToggleOffice");
 
       if (status === "out") {
-        heroBadge.className = "w-24 h-24 rounded-2xl shadow-sm flex flex-col items-center justify-center bg-[#fbc02d] text-[#1a1a1a] transition-colors select-none";
+        heroBadge.className = "w-28 h-[84px] rounded-2xl shadow-sm flex flex-col items-center justify-center bg-[#fbc02d] text-[#1a1a1a] transition-colors select-none";
         btnOut.className = "w-1/2 py-2 rounded-lg text-xs font-bold bg-white text-[#b80000] shadow-sm text-center cursor-default";
         btnOffice.className = "w-1/2 py-2 rounded-lg text-xs font-semibold text-[#5d403b] hover:text-[#1b1c1c] text-center cursor-pointer";
       } else {
-        heroBadge.className = "w-24 h-24 rounded-2xl shadow-sm flex flex-col items-center justify-center bg-[#2e7d32] text-white transition-colors select-none";
+        heroBadge.className = "w-28 h-[84px] rounded-2xl shadow-sm flex flex-col items-center justify-center bg-[#2e7d32] text-white transition-colors select-none";
         btnOffice.className = "w-1/2 py-2 rounded-lg text-xs font-bold bg-white text-[#b80000] shadow-sm text-center cursor-default";
         btnOut.className = "w-1/2 py-2 rounded-lg text-xs font-semibold text-[#5d403b] hover:text-[#1b1c1c] text-center cursor-default";
       }
@@ -2001,8 +1996,11 @@
           if (!dev) {
             card.className = "w-full bg-[#f5f3f3] border border-dashed border-[#9e9e9e] rounded-xl p-3 flex items-center justify-between";
             card.innerHTML = `
-              <div class="flex items-center gap-3">
-                <span class="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xs font-code border-2 border-dashed border-[#9e9e9e] text-[#9e9e9e]">${slot.slot_tag}</span>
+              <div class="flex items-center gap-3 min-w-0 flex-1">
+                <span class="w-14 h-[44px] rounded-xl flex flex-col items-center justify-center shrink-0 border-2 border-dashed border-[#9e9e9e] text-[#9e9e9e] select-none">
+                  <span class="font-bold text-[13px] leading-none">--</span>
+                  <span class="text-[11px] font-semibold leading-tight mt-0.5">${slot.slot_tag}</span>
+                </span>
                 <span class="text-sm font-medium text-[#9e9e9e]">[Unassigned]</span>
               </div>
             `;
@@ -2042,14 +2040,15 @@
             card.className = "w-full bg-white rounded-xl p-3 shadow-sm flex items-center justify-between gap-2";
             card.innerHTML = `
               <div class="flex items-center gap-3 min-w-0 flex-1">
-                <button type="button" onclick="openSwapModal(${slot.slot_number})" class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 font-bold text-xs font-code cursor-pointer active:scale-95 transition-transform" style="background-color: ${badgeBg}; color: ${badgeText};">
-                  ${slot.slot_tag}
+                <button type="button" onclick="openSwapModal(${slot.slot_number})" class="w-14 h-[44px] rounded-xl flex flex-col items-center justify-center shrink-0 cursor-pointer active:scale-95 transition-transform select-none" style="background-color: ${badgeBg}; color: ${badgeText};">
+                  <span class="font-bold text-[13px] leading-none truncate max-w-full px-1">${escapeHtml(dev.label)}</span>
+                  <span class="text-[11px] font-semibold leading-tight mt-0.5">${slot.slot_tag}</span>
                 </button>
-                <div class="flex flex-col min-w-0">
-                  <button type="button" onclick="openRenameModal('${dev.id}')" class="text-sm font-semibold text-[#1b1c1c] text-left hover:underline cursor-pointer">
+                <div class="flex flex-col min-w-0 flex-1">
+                  <button type="button" onclick="openRenameModal('${dev.id}')" class="text-sm font-semibold text-[#1b1c1c] text-left hover:underline cursor-pointer truncate">
                     ${escapeHtml(dev.label)}
                   </button>
-                  <span class="text-xs text-[#5d403b]">${subtitleText}</span>
+                  <span class="text-xs text-[#5d403b] truncate">${subtitleText}</span>
                 </div>
               </div>
               <div class="flex items-center gap-2 shrink-0">
@@ -3219,17 +3218,177 @@
 
     function handleMonthBadgeClick() {
       if (currentView === "calendar") {
+        calendarSelectedDateKey = null;
+        calendarSelectedEventId = null;
         selectedDate = getTodayAnchor();
         updateTimelineFooter();
         renderCalendarView();
+        renderCalendarEventFooter(true);
         scrollCalendarToDate(selectedDate, false);
         requestAnimationFrame(() => {
+          renderCalendarEventFooter(true);
           scrollCalendarToDate(selectedDate, false);
         });
       } else {
         const footer = document.getElementById("timelineFooter");
         if (footer) footer.classList.add("hidden");
         switchView("calendar");
+      }
+    }
+
+    function handleCalendarDayClick(cellDate, dateKey) {
+      if (calendarSelectedDateKey === dateKey) {
+        calendarSelectedDateKey = null;
+        selectedDate = getTodayAnchor();
+      } else {
+        calendarSelectedDateKey = dateKey;
+        selectedDate = new Date(cellDate.getFullYear(), cellDate.getMonth(), cellDate.getDate());
+      }
+      updateTimelineFooter();
+      renderCalendarView();
+    }
+
+    function handleCalendarEventChipClick(evId) {
+      if (calendarSelectedEventId === evId) {
+        calendarSelectedEventId = null;
+        renderCalendarView();
+        renderCalendarEventFooter("preserve");
+        return;
+      }
+      calendarSelectedEventId = evId;
+      renderCalendarView();
+      renderCalendarEventFooter("intoView");
+      const ev = findEventById(globalStore, evId);
+      if (ev && ev.out_date) {
+        const outDt = parseDateKey(ev.out_date);
+        if (outDt) {
+          renderHeaderCalendarBadge(outDt.getFullYear(), outDt.getMonth());
+          scrollCalendarToDate(outDt, true);
+          requestAnimationFrame(() => {
+            scrollCalendarToDate(outDt, true);
+          });
+        }
+      }
+    }
+
+    function renderCalendarEventFooter(mode = "preserve") {
+      const track = document.getElementById("calendarEventsTrack");
+      if (!track) return;
+      const scrollMode = typeof mode === "string" ? mode : (mode ? "center" : "preserve");
+      const prevScrollLeft = track.scrollLeft || 0;
+      track.innerHTML = "";
+
+      const events = (globalStore && Array.isArray(globalStore.events)) ? globalStore.events.slice() : [];
+      events.sort((a, b) => {
+        const cmpOut = (a.out_date || "").localeCompare(b.out_date || "");
+        if (cmpOut !== 0) return cmpOut;
+        const cmpDue = (a.due_date || "").localeCompare(b.due_date || "");
+        if (cmpDue !== 0) return cmpDue;
+        const custA = getEventCustomerName(globalStore, a);
+        const custB = getEventCustomerName(globalStore, b);
+        const cmpCust = custA.localeCompare(custB, undefined, { sensitivity: "base" }) || custA.localeCompare(custB);
+        if (cmpCust !== 0) return cmpCust;
+        return (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" }) || (a.name || "").localeCompare(b.name || "");
+      });
+
+      if (calendarSelectedEventId && !events.some(ev => ev.id === calendarSelectedEventId)) {
+        calendarSelectedEventId = null;
+      }
+
+      if (events.length === 0) {
+        track.innerHTML = `<div class="w-full text-center text-xs text-[#916f69] font-medium">No events scheduled</div>`;
+        return;
+      }
+
+      const todayKey = formatDateInputValue(getTodayAnchor());
+      let centerEvent = events.find(ev => ev.out_date && ev.due_date && ev.out_date <= todayKey && todayKey <= ev.due_date);
+      if (!centerEvent) {
+        centerEvent = events.find(ev => ev.due_date && ev.due_date >= todayKey) || events[events.length - 1];
+      }
+
+      let centerChipEl = null;
+      let selectedChipEl = null;
+      events.forEach((ev, idx) => {
+        const isSelected = calendarSelectedEventId === ev.id;
+        const isPast = Boolean(ev.due_date && ev.due_date < todayKey);
+        const custName = getEventCustomerName(globalStore, ev);
+        const dateSpan = [ev.out_date, ev.due_date].filter(Boolean).join(" &bull; ");
+        const edgeMarginClass = `${idx === 0 ? " ml-1" : ""}${idx === events.length - 1 ? " mr-1" : ""}`;
+
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.id = `cal_ev_chip_${ev.id}`;
+        chip.dataset.eventId = ev.id;
+        chip.onclick = () => handleCalendarEventChipClick(ev.id);
+        chip.className = `relative group shrink-0 min-w-[160px] max-w-[240px] cursor-pointer select-none focus:outline-none${edgeMarginClass}`;
+
+        const outlineHtml = isSelected
+          ? `<div aria-hidden="true" class="pointer-events-none absolute -inset-[4px] rounded-2xl border border-[#3f3f3f] bg-[#525252] z-0"></div>`
+          : "";
+        const cardClass = isPast
+          ? "w-full p-3 rounded-xl border border-[#e9e8e7] bg-[#f9f8f8] hover:bg-[#f2f1f1] flex flex-col items-center justify-center text-center transition-colors"
+          : "w-full p-3 rounded-xl border border-[#e9e8e7] bg-white shadow-sm hover:border-[#d5d3d2] flex flex-col items-center justify-center text-center transition-colors";
+        const custHeaderColor = isSelected ? "text-white" : (isPast ? "text-[#9e9e9e]" : "text-[#5d403b]");
+        const titleColor = isPast ? "text-[#9e9e9e]" : "text-[#1b1c1c]";
+        const metaColor = isPast ? "text-[#9e9e9e]" : "text-[#5d403b]";
+
+        chip.innerHTML = `
+          ${outlineHtml}
+          <div class="relative z-10 w-full flex flex-col items-center transition-transform group-active:scale-95">
+            <span class="w-full px-1 text-[10px] font-bold uppercase tracking-wider leading-[11px] mb-[3px] truncate text-center ${custHeaderColor}">${custName ? escapeHtml(custName) : "&nbsp;"}</span>
+            <div class="${cardClass}">
+              <span class="text-sm font-semibold ${titleColor} truncate w-full text-center">${escapeHtml(ev.name)}</span>
+              <span class="text-xs ${metaColor} mt-0.5 whitespace-nowrap text-center">${dateSpan}</span>
+            </div>
+          </div>
+        `;
+        track.appendChild(chip);
+        if (centerEvent && ev.id === centerEvent.id) {
+          centerChipEl = chip;
+        }
+        if (isSelected) {
+          selectedChipEl = chip;
+        }
+      });
+
+      if (scrollMode === "center" && centerChipEl && typeof track.scrollLeft === "number") {
+        const clientW = track.clientWidth || 0;
+        const offsetW = centerChipEl.offsetWidth || 0;
+        const offsetL = centerChipEl.offsetLeft || 0;
+        const targetLeft = Math.max(0, offsetL - Math.max(0, (clientW - offsetW) / 2));
+        if (typeof track.scrollTo === "function") {
+          track.scrollTo({ left: targetLeft, behavior: "auto" });
+        } else {
+          track.scrollLeft = targetLeft;
+        }
+      } else if (scrollMode === "intoView" && selectedChipEl && typeof track.scrollLeft === "number") {
+        track.scrollLeft = prevScrollLeft;
+        const clientW = track.clientWidth || 0;
+        if (clientW > 0) {
+          const haloPad = 6;
+          const chipW = selectedChipEl.offsetWidth || 0;
+          const chipL = selectedChipEl.offsetLeft || 0;
+          const needLeft = Math.max(0, chipL - haloPad);
+          const needRight = chipL + chipW + haloPad;
+          const viewLeft = prevScrollLeft;
+          const viewRight = viewLeft + clientW;
+          let targetLeft = null;
+          if (chipW + haloPad * 2 >= clientW || needLeft < viewLeft) {
+            targetLeft = needLeft;
+          } else if (needRight > viewRight) {
+            const maxScroll = Math.max(0, (track.scrollWidth || needRight) - clientW);
+            targetLeft = Math.min(maxScroll, needRight - clientW);
+          }
+          if (targetLeft !== null) {
+            if (typeof track.scrollTo === "function") {
+              track.scrollTo({ left: targetLeft, behavior: "smooth" });
+            } else {
+              track.scrollLeft = targetLeft;
+            }
+          }
+        }
+      } else if (typeof track.scrollLeft === "number") {
+        track.scrollLeft = prevScrollLeft;
       }
     }
 
@@ -3240,67 +3399,288 @@
       return new Date(date.setDate(diff));
     }
 
-    function getCalendarWeek(d) {
-      const target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-      const dayNr = target.getUTCDay() || 7;
-      target.setUTCDate(target.getUTCDate() + 4 - dayNr);
-      const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
-      return Math.ceil((((target - yearStart) / 86400000) + 1) / 7);
-    }
-
     function isSameDate(d1, d2) {
       return d1.getFullYear() === d2.getFullYear() &&
              d1.getMonth() === d2.getMonth() &&
              d1.getDate() === d2.getDate();
     }
 
-    // Update Footer Week Controls & Metadata Row
-    function updateTimelineFooter() {
-      const focalMonday = getMondayOfWeek(selectedDate);
+    const CALENDAR_COLS = 5;
+    const CALENDAR_PAST_DAYS = 90; // 18 rows * 5 = 90 days (~13 weeks)
+    const CALENDAR_FUTURE_DAYS = 275; // 55 rows * 5 = 275 days (~39 weeks)
+
+    function getRollingDateRange() {
+      const today = getTodayAnchor();
+      const todayKey = formatDateInputValue(today);
+      const calendarAnchor = getMondayOfWeek(today);
+      const baseStartDate = new Date(calendarAnchor.getFullYear(), calendarAnchor.getMonth(), calendarAnchor.getDate() - CALENDAR_PAST_DAYS);
+      const baseTotalDays = CALENDAR_PAST_DAYS + CALENDAR_FUTURE_DAYS;
+
+      let minDayOffset = 0;
+      let maxDayOffset = baseTotalDays - 1;
+      const MIN_CLAMP_OFFSET = -3650;
+      const MAX_CLAMP_OFFSET = 3650;
+
+      const expandForDate = (dt) => {
+        if (!dt) return;
+        const diff = diffCalendarDaysLocal(dt, baseStartDate);
+        const clamped = Math.max(MIN_CLAMP_OFFSET, Math.min(MAX_CLAMP_OFFSET, diff));
+        if (clamped < minDayOffset) minDayOffset = clamped;
+        if (clamped > maxDayOffset) maxDayOffset = clamped;
+      };
+
+      expandForDate(selectedDate);
+      ((globalStore && globalStore.bookings) || []).forEach(b => {
+        if (!b) return;
+        if (b.out_date) expandForDate(parseDateKey(b.out_date));
+        if (b.due_date) expandForDate(parseDateKey(b.due_date));
+      });
+      ((globalStore && globalStore.events) || []).forEach(ev => {
+        if (!ev) return;
+        if (ev.out_date) expandForDate(parseDateKey(ev.out_date));
+        if (ev.due_date) expandForDate(parseDateKey(ev.due_date));
+      });
+
+      const alignedStartOffset = Math.floor(minDayOffset / CALENDAR_COLS) * CALENDAR_COLS;
+      const startDate = new Date(baseStartDate.getFullYear(), baseStartDate.getMonth(), baseStartDate.getDate() + alignedStartOffset);
+      const spanNeeded = (maxDayOffset - alignedStartOffset) + 1;
+      const totalRows = Math.ceil(spanNeeded / CALENDAR_COLS);
+      const totalDays = totalRows * CALENDAR_COLS;
+      const endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + totalDays - 1);
+
+      return {
+        today,
+        todayKey,
+        startDate,
+        endDate,
+        totalRows,
+        totalDays,
+        startKey: formatDateInputValue(startDate),
+        endKey: formatDateInputValue(endDate)
+      };
+    }
+
+    let timelineRenderedMeta = { startKey: "", endKey: "", todayKey: "", activeKey: "" };
+    let timelineScrollRaf = null;
+    let suppressTimelineScrollSync = false;
+    let timelineProgrammaticTimer = null;
+    let timelineSnapSettleTimer = null;
+
+    function applyTimelineChipVisual(chip, dayDate, dateKey, todayKey, selectedKey) {
+      if (!chip) return;
+      const isSelected = dateKey === selectedKey;
+      const isToday = dateKey === todayKey;
+      const isPast = dateKey < todayKey;
+      const dayName = DAY_NAMES[(dayDate.getDay() + 6) % 7];
+      const isFirstOfMonth = dayDate.getDate() === 1;
+      const dPad = dayDate.getDate() < 10 ? `0${dayDate.getDate()}` : `${dayDate.getDate()}`;
+      const dateDisplay = isFirstOfMonth
+        ? `${dayDate.getMonth() + 1 < 10 ? "0" : ""}${dayDate.getMonth() + 1}/${dPad}`
+        : dPad;
+
+      const outerFrameClass = isSelected
+        ? "border-[#3f3f3f] bg-[#525252]"
+        : "border-transparent bg-transparent";
+      chip.className = `timeline-day-btn shrink-0 snap-center group p-[3px] rounded-2xl border flex flex-col items-center cursor-pointer select-none focus:outline-none ${outerFrameClass}`;
+
+      const headerColor = isSelected ? "text-white" : (isPast ? "text-[#9e9e9e]" : "text-[#5d403b]");
+      let boxStateClass = "";
+      if (isSelected) {
+        boxStateClass = "bg-white border-[6px] border-[#b80000] shadow-sm";
+      } else if (isPast) {
+        boxStateClass = "bg-[#f9f8f8] border border-[#e9e8e7] group-hover:bg-[#f2f1f1]";
+      } else {
+        boxStateClass = "bg-white border border-[#e9e8e7] shadow-sm group-hover:border-[#d5d3d2]";
+      }
+
+      let dateHtml = "";
+      if (isToday) {
+        dateHtml = `<span class="rounded-full bg-[#b80000] text-white ${isFirstOfMonth ? "px-1.5 py-0.5 text-xs" : "px-2.5 py-0.5 text-base"} font-bold leading-none">${dateDisplay}</span>`;
+      } else {
+        const numColor = isSelected ? "text-[#b80000]" : (isPast ? "text-[#9e9e9e]" : "text-[#1b1c1c]");
+        const numSize = isFirstOfMonth ? "text-sm" : "text-xl";
+        dateHtml = `<span class="${numSize} font-bold leading-none ${numColor}">${dateDisplay}</span>`;
+      }
+
+      chip.innerHTML = `
+        <span class="w-full px-1 text-[10px] font-bold uppercase tracking-wider leading-[11px] mb-[3px] text-center ${headerColor}">${dayName}</span>
+        <div class="w-16 h-16 rounded-xl flex items-center justify-center transition-all group-active:scale-95 ${boxStateClass}">
+          ${dateHtml}
+        </div>
+      `;
+    }
+
+    function scrollTimelineToDate(targetDate, smooth = false) {
+      if (!targetDate) targetDate = selectedDate;
+      const container = document.getElementById("timelineDaysContainer");
+      const dateKey = formatDateInputValue(targetDate);
+      const chip = document.getElementById(`tl_day_${dateKey}`);
+      if (!container || !chip || !container.clientWidth) return;
+
+      const targetLeft = Math.max(0, chip.offsetLeft + (chip.offsetWidth / 2) - (container.clientWidth / 2));
+      if (timelineProgrammaticTimer) {
+        clearTimeout(timelineProgrammaticTimer);
+        timelineProgrammaticTimer = null;
+      }
+      suppressTimelineScrollSync = true;
+      if (typeof container.scrollTo === "function") {
+        container.scrollTo({ left: targetLeft, behavior: smooth ? "smooth" : "auto" });
+      }
+      if (!smooth || typeof container.scrollTo !== "function") {
+        container.scrollLeft = targetLeft;
+      }
+
+      if (smooth) {
+        timelineProgrammaticTimer = setTimeout(() => {
+          suppressTimelineScrollSync = false;
+          timelineProgrammaticTimer = null;
+        }, 750);
+      } else {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            suppressTimelineScrollSync = false;
+          });
+        });
+      }
+    }
+
+    // Update Timeline Carousel & Active Center Day
+    function updateTimelineFooter(options = {}) {
+      const { smooth = false, skipScroll = false } = options;
       const container = document.getElementById("timelineDaysContainer");
       if (!container) return;
 
-      container.innerHTML = "";
-      for (let i = 0; i < 7; i++) {
-        const dayDate = new Date(focalMonday.getTime() + (i * 86400000));
-        const isSelected = isSameDate(dayDate, selectedDate);
-        const dayPad = dayDate.getDate() < 10 ? `0${dayDate.getDate()}` : `${dayDate.getDate()}`;
-        const dayName = DAY_NAMES[i];
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.onclick = () => selectDay(dayDate);
-        if (isSelected) {
-          btn.className = "timeline-day-btn flex flex-col items-center justify-center py-1 rounded-lg bg-white text-[#b80000] shadow-sm active:scale-95 transition-all cursor-pointer";
-          btn.innerHTML = `
-            <span class="text-[9px] font-bold uppercase tracking-wider text-[#b80000]">${dayName}</span>
-            <span class="text-xs font-bold leading-tight text-[#b80000]">${dayPad}</span>
-          `;
-        } else {
-          btn.className = "timeline-day-btn flex flex-col items-center justify-center py-1 rounded-lg text-[#5d403b] hover:text-[#1b1c1c] active:scale-95 transition-all cursor-pointer";
-          btn.innerHTML = `
-            <span class="text-[9px] font-bold uppercase tracking-wider opacity-60">${dayName}</span>
-            <span class="text-xs font-semibold leading-tight">${dayPad}</span>
-          `;
+      const { todayKey, startDate, totalDays, startKey, endKey } = getRollingDateRange();
+      const selectedKey = formatDateInputValue(selectedDate);
+
+      const needsRebuild = (
+        container.children.length === 0 ||
+        timelineRenderedMeta.startKey !== startKey ||
+        timelineRenderedMeta.endKey !== endKey ||
+        timelineRenderedMeta.todayKey !== todayKey
+      );
+
+      if (needsRebuild) {
+        container.innerHTML = "";
+        const startSpacer = document.createElement("div");
+        startSpacer.setAttribute("aria-hidden", "true");
+        startSpacer.className = "shrink-0 w-[calc(50%-38px)] h-1 pointer-events-none";
+        container.appendChild(startSpacer);
+
+        for (let i = 0; i < totalDays; i++) {
+          const dayDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + i);
+          const dateKey = formatDateInputValue(dayDate);
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.id = `tl_day_${dateKey}`;
+          btn.dataset.tlDate = dateKey;
+          btn.onclick = () => selectDay(dayDate, true);
+          applyTimelineChipVisual(btn, dayDate, dateKey, todayKey, selectedKey);
+          container.appendChild(btn);
         }
-        container.appendChild(btn);
+
+        const endSpacer = document.createElement("div");
+        endSpacer.setAttribute("aria-hidden", "true");
+        endSpacer.className = "shrink-0 w-[calc(50%-38px)] h-1 pointer-events-none";
+        container.appendChild(endSpacer);
+
+        timelineRenderedMeta = { startKey, endKey, todayKey, activeKey: selectedKey };
+      } else if (timelineRenderedMeta.activeKey !== selectedKey) {
+        const prevKey = timelineRenderedMeta.activeKey;
+        if (prevKey) {
+          const prevEl = document.getElementById(`tl_day_${prevKey}`);
+          const prevDate = parseDateKey(prevKey);
+          if (prevEl && prevDate) applyTimelineChipVisual(prevEl, prevDate, prevKey, todayKey, selectedKey);
+        }
+        const nextEl = document.getElementById(`tl_day_${selectedKey}`);
+        if (nextEl) applyTimelineChipVisual(nextEl, selectedDate, selectedKey, todayKey, selectedKey);
+        timelineRenderedMeta.activeKey = selectedKey;
       }
 
-      // Metadata Row (Year and CW only)
-      const yearLabel = document.getElementById("timelineYearLabel");
-      if (yearLabel) yearLabel.textContent = selectedDate.getFullYear();
-      const cwLabel = document.getElementById("timelineCwLabel");
-      if (cwLabel) {
-        const cw = getCalendarWeek(selectedDate);
-        cwLabel.textContent = `CW #${cw < 10 ? '0' + cw : cw}`;
+      if (!skipScroll) {
+        scrollTimelineToDate(selectedDate, smooth);
       }
 
       // Top Toggle Month / Date text
       updateHeaderCenterBadge();
     }
 
-    function selectDay(date) {
+    function syncTimelineCenterFromScroll() {
+      if ((currentView !== "grid" && currentView !== "list") || suppressTimelineScrollSync) return;
+      const container = document.getElementById("timelineDaysContainer");
+      if (!container || !container.clientWidth) return;
+
+      const viewCenterX = container.scrollLeft + (container.clientWidth / 2);
+      let closestChip = null;
+      let closestDist = Infinity;
+
+      const children = container.children || [];
+      for (let i = 0; i < children.length; i++) {
+        const el = children[i];
+        if (!el || !el.dataset || !el.dataset.tlDate) continue;
+        const center = el.offsetLeft + (el.offsetWidth / 2);
+        const dist = Math.abs(center - viewCenterX);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestChip = el;
+        }
+      }
+
+      if (!closestChip || !closestChip.dataset.tlDate) return;
+      const closestKey = closestChip.dataset.tlDate;
+      if (closestKey === formatDateInputValue(selectedDate)) return;
+
+      const parsed = parseDateKey(closestKey);
+      if (!parsed) return;
+      selectedDate = parsed;
+      updateTimelineFooter({ skipScroll: true });
+      if (currentView === "grid") {
+        renderGridView();
+      } else if (currentView === "list") {
+        renderListView();
+      }
+    }
+
+    function setupTimelineScrollListener() {
+      const container = document.getElementById("timelineDaysContainer");
+      if (!container) return;
+
+      const releaseSuppression = () => {
+        if (timelineProgrammaticTimer) {
+          clearTimeout(timelineProgrammaticTimer);
+          timelineProgrammaticTimer = null;
+        }
+        suppressTimelineScrollSync = false;
+      };
+
+      container.addEventListener("pointerdown", releaseSuppression, { passive: true });
+      container.addEventListener("touchstart", releaseSuppression, { passive: true });
+      container.addEventListener("wheel", releaseSuppression, { passive: true });
+
+      container.addEventListener("scroll", () => {
+        if ((currentView !== "grid" && currentView !== "list") || suppressTimelineScrollSync) return;
+        if (timelineScrollRaf) cancelAnimationFrame(timelineScrollRaf);
+        timelineScrollRaf = requestAnimationFrame(syncTimelineCenterFromScroll);
+
+        if (timelineSnapSettleTimer) clearTimeout(timelineSnapSettleTimer);
+        timelineSnapSettleTimer = setTimeout(syncTimelineCenterFromScroll, 110);
+      }, { passive: true });
+
+      container.addEventListener("scrollend", () => {
+        releaseSuppression();
+        syncTimelineCenterFromScroll();
+      }, { passive: true });
+
+      window.addEventListener("resize", () => {
+        if (currentView === "grid" || currentView === "list") {
+          scrollTimelineToDate(selectedDate, false);
+        }
+      }, { passive: true });
+    }
+
+    function selectDay(date, smoothScroll = false) {
       selectedDate = new Date(date);
-      updateTimelineFooter();
+      updateTimelineFooter({ smooth: smoothScroll });
       if (currentView === "calendar") {
         renderCalendarView();
         scrollCalendarToDate(selectedDate, false);
@@ -3310,25 +3690,6 @@
         renderListView();
       }
     }
-
-    function handleMockWeekChange(delta) {
-      const newDate = new Date(selectedDate);
-      newDate.setDate(newDate.getDate() + (delta * 7));
-      selectedDate = newDate;
-      updateTimelineFooter();
-      if (currentView === "calendar") {
-        renderCalendarView();
-        scrollCalendarToDate(selectedDate, false);
-      } else if (currentView === "grid") {
-        renderGridView();
-      } else if (currentView === "list") {
-        renderListView();
-      }
-    }
-
-    const CALENDAR_COLS = 5;
-    const CALENDAR_PAST_DAYS = 90; // 18 rows * 5 = 90 days (~13 weeks)
-    const CALENDAR_FUTURE_DAYS = 275; // 55 rows * 5 = 275 days (~39 weeks)
 
     // Calculate 5-segment merged status pill: Out + Overdue (Yellow #fbc02d) + Office (Green #2e7d32)
     function getMergedSegmentCounts(outCount, officeCount) {
@@ -3432,41 +3793,7 @@
       if (!container) return;
       container.innerHTML = "";
 
-      const today = getTodayAnchor();
-      const todayKey = formatDateInputValue(today);
-      const calendarAnchor = getMondayOfWeek(today);
-      const baseStartDate = new Date(calendarAnchor.getFullYear(), calendarAnchor.getMonth(), calendarAnchor.getDate() - CALENDAR_PAST_DAYS);
-      const baseTotalDays = CALENDAR_PAST_DAYS + CALENDAR_FUTURE_DAYS;
-
-      let minDayOffset = 0;
-      let maxDayOffset = baseTotalDays - 1;
-      const MIN_CLAMP_OFFSET = -3650;
-      const MAX_CLAMP_OFFSET = 3650;
-
-      const expandForDate = (dt) => {
-        if (!dt) return;
-        const diff = diffCalendarDaysLocal(dt, baseStartDate);
-        const clamped = Math.max(MIN_CLAMP_OFFSET, Math.min(MAX_CLAMP_OFFSET, diff));
-        if (clamped < minDayOffset) minDayOffset = clamped;
-        if (clamped > maxDayOffset) maxDayOffset = clamped;
-      };
-
-      expandForDate(selectedDate);
-      ((globalStore && globalStore.bookings) || []).forEach(b => {
-        if (!b) return;
-        if (b.out_date) expandForDate(parseDateKey(b.out_date));
-        if (b.due_date) expandForDate(parseDateKey(b.due_date));
-      });
-
-      const alignedStartOffset = Math.floor(minDayOffset / CALENDAR_COLS) * CALENDAR_COLS;
-      const startDate = new Date(baseStartDate.getFullYear(), baseStartDate.getMonth(), baseStartDate.getDate() + alignedStartOffset);
-      const spanNeeded = (maxDayOffset - alignedStartOffset) + 1;
-      const totalRows = Math.ceil(spanNeeded / CALENDAR_COLS);
-      const totalDays = totalRows * CALENDAR_COLS;
-      const endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + totalDays - 1);
-
-      const startKey = formatDateInputValue(startDate);
-      const endKey = formatDateInputValue(endDate);
+      const { today, todayKey, startDate, totalRows, startKey, endKey } = getRollingDateRange();
       const devicesList = (globalStore && Array.isArray(globalStore.devices)) ? globalStore.devices : [];
       const allDeviceIdSet = new Set(devicesList.map(d => d && d.id).filter(Boolean));
       const lzAllIds = new Set();
@@ -3499,6 +3826,7 @@
         return { outCount: typeOutCount, officeCount: typeOfficeCount };
       };
 
+      const activeEvent = calendarSelectedEventId ? findEventById(globalStore, calendarSelectedEventId) : null;
       const outSetsByDay = buildCalendarOutSetsByDay(globalStore, startKey, endKey, todayKey, allDeviceIdSet);
 
       for (let row = 0; row < totalRows; row++) {
@@ -3512,6 +3840,11 @@
           const totalOutCount = outSet ? outSet.size : 0;
           const isPastDate = cellDate.getTime() < today.getTime();
           const isSettledPastLook = isPastDate && totalOutCount === 0;
+          const isSelectedDay = calendarSelectedDateKey === dateKey;
+          const isEventDay = Boolean(
+            activeEvent && activeEvent.out_date && activeEvent.due_date &&
+            activeEvent.out_date <= dateKey && dateKey <= activeEvent.due_date
+          );
 
           const lzInfo = getTypeDayInfo(outSet, lzAllIds, lzActiveIds);
           const llInfo = getTypeDayInfo(outSet, llAllIds, llActiveIds);
@@ -3520,25 +3853,34 @@
           const lzSeg = getMergedSegmentCounts(lzInfo.outCount, lzInfo.officeCount);
           const llSeg = getMergedSegmentCounts(llInfo.outCount, llInfo.officeCount);
 
-          // All days (including past days) remain touchable buttons
+          // All days stay touchable; tapping toggles single-day selection on Calendar without leaving Calendar
           const cell = document.createElement("button");
           cell.type = "button";
-          cell.onclick = () => {
-            selectedDate = new Date(cellDate);
-            updateTimelineFooter();
-            switchView("grid");
-          };
+          cell.onclick = () => handleCalendarDayClick(cellDate, dateKey);
           cell.id = `cal_day_${dateKey}`;
           cell.dataset.calDate = dateKey;
+          cell.className = "relative group w-full h-[58px] cursor-pointer select-none focus:outline-none";
 
+          let haloHtml = "";
+          if (isEventDay) {
+            const prevKey = addDaysToDateKey(dateKey, -1);
+            const nextKey = addDaysToDateKey(dateKey, 1);
+            const hasPrevSameRow = col > 0 && Boolean(prevKey && activeEvent.out_date <= prevKey && prevKey <= activeEvent.due_date);
+            const hasNextSameRow = col < (CALENDAR_COLS - 1) && Boolean(nextKey && activeEvent.out_date <= nextKey && nextKey <= activeEvent.due_date);
+            haloHtml = buildEventHaloHtml(hasPrevSameRow, hasNextSameRow);
+          }
+
+          let innerCardClass = "";
           if (isSettledPastLook) {
-            cell.className = "flex flex-col items-center justify-center w-full h-[58px] rounded-2xl overflow-hidden border-2 border-dashed border-[#9e9e9e] text-[#9e9e9e] hover:bg-[#f0efef] active:scale-95 transition-all select-none cursor-pointer";
+            const pastBorderClass = isSelectedDay ? "border-[6px] border-[#b80000]" : "border-2 border-dashed border-[#9e9e9e]";
+            innerCardClass = `relative z-10 flex flex-col items-center justify-center w-full h-full rounded-2xl overflow-hidden bg-[#fbf9f9] ${pastBorderClass} text-[#9e9e9e] hover:bg-[#f0efef] group-active:scale-95 transition-all`;
           } else {
-            // Alternating month shades (2 light grey tones to easily distinguish months)
             const isEvenMonth = cellDate.getMonth() % 2 === 0;
             const bgClass = isEvenMonth ? "bg-[#f5f4f4]" : "bg-[#eae8e8]";
-            const borderClass = isEvenMonth ? "border-[#e3e1e1]" : "border-[#dad8d8]";
-            cell.className = `flex flex-col items-center justify-center w-full h-[58px] rounded-2xl overflow-hidden border ${borderClass} ${bgClass} shadow-xs active:scale-95 transition-all cursor-pointer`;
+            const borderClass = isSelectedDay
+              ? "border-[6px] border-[#b80000]"
+              : (isEvenMonth ? "border border-[#e3e1e1]" : "border border-[#dad8d8]");
+            innerCardClass = `relative z-10 flex flex-col items-center justify-center w-full h-full rounded-2xl overflow-hidden ${borderClass} ${bgClass} shadow-xs group-active:scale-95 transition-all`;
           }
 
           // Date formatting: first of month carries month number in mm/dd format (e.g. "11/01"), other dates use 2-digit day (e.g. "03")
@@ -3551,7 +3893,7 @@
             const m = cellDate.getMonth() + 1;
             const mPad = m < 10 ? `0${m}` : `${m}`;
             dateDisplay = `${mPad}/${dPad}`;
-            pillWidthClass = "px-2 min-w-11";
+            pillWidthClass = "px-1.5 min-w-11";
           }
 
           // Upper Row: Date display (capsule pill matching status bar width, widened if first of month; red pill stays anchored on today)
@@ -3562,17 +3904,20 @@
           }
 
           cell.innerHTML = `
-            <!-- Upper Row: Date Number (Bold, mm/dd on 1st of month, pill-shaped red highlight) -->
-            <div class="flex items-center justify-center w-full h-[22px]">
-              <span class="${datePillClass}">
-                ${dateDisplay}
-              </span>
-            </div>
+            ${haloHtml}
+            <div class="${innerCardClass}">
+              <!-- Upper Row: Date Number (Bold, mm/dd on 1st of month, pill-shaped red highlight) -->
+              <div class="flex items-center justify-center w-full h-[22px]">
+                <span class="${datePillClass}">
+                  ${dateDisplay}
+                </span>
+              </div>
 
-            <!-- Bottom Row: Dual Stacked Status Pills (Upper = LZ, Lower = LL) -->
-            <div class="flex flex-col items-center justify-center w-full mt-1 gap-[2px]">
-              ${renderSegmentedBarHtml(lzSeg.yellowSegments, lzSeg.greenSegments, lzGrey, "h-1.5")}
-              ${renderSegmentedBarHtml(llSeg.yellowSegments, llSeg.greenSegments, llGrey, "h-1.5")}
+              <!-- Bottom Row: Dual Stacked Status Pills (Upper = LZ, Lower = LL) -->
+              <div class="flex flex-col items-center justify-center w-full mt-1 gap-[2px]">
+                ${renderSegmentedBarHtml(lzSeg.yellowSegments, lzSeg.greenSegments, lzGrey, "h-1.5")}
+                ${renderSegmentedBarHtml(llSeg.yellowSegments, llSeg.greenSegments, llGrey, "h-1.5")}
+              </div>
             </div>
           `;
 
@@ -3655,6 +4000,7 @@
 
     // Startup Initialization
     setupCalendarScrollListener();
+    setupTimelineScrollListener();
     updateTimelineFooter();
     switchView("grid");
 
